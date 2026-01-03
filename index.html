@@ -1,59 +1,66 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Alici Pizza – Turni</title>
-  <style>
-    :root {
-      --bg: linear-gradient(180deg,#0b1020,#020617);
-      --card: rgba(255,255,255,0.06);
-      --accent: #38bdf8;
-      --accent-soft: rgba(56,189,248,.15);
-      --text: #e5e7eb;
-      --muted: #94a3b8;
-    }
-    * { box-sizing:border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont; }
-    body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); position:relative; }
-    header { padding:1.5rem 1rem 1rem; text-align:center; }
-    header h1 { font-size:1.6rem; font-weight:800; }
-    header h2 { font-size:1rem; font-weight:600; color:var(--muted); margin-top:.25rem; }
-    header .by { font-size:.7rem; color:var(--muted); margin-top:.25rem; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Alice Pizza – Turni</title>
+<style>
+:root {
+  --bg: linear-gradient(180deg,#0b1020,#020617);
+  --card: rgba(255,255,255,0.06);
+  --accent: #38bdf8;
+  --accent-soft: rgba(56,189,248,.15);
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+}
+* { box-sizing:border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont; }
+body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); position:relative; }
+header { padding:1.5rem 1rem 1rem; text-align:center; }
+header h1 { font-size:1.6rem; font-weight:800; }
+header h2 { font-size:1rem; font-weight:600; color:var(--muted); margin-top:.25rem; }
+header .by { font-size:.7rem; color:var(--muted); margin-top:.25rem; }
 
-    button { background:var(--accent); border:0; border-radius:999px; padding:.6rem 1.1rem; font-weight:700; cursor:pointer; }
-    button.secondary { background:var(--accent-soft); color:var(--accent); }
-    button.danger { background:#ef4444; color:white; padding:.35rem .75rem; font-size:.75rem; margin-left:.5rem; }
+button { background:var(--accent); border:0; border-radius:999px; padding:.6rem 1.1rem; font-weight:700; cursor:pointer; }
+button.secondary { background:var(--accent-soft); color:var(--accent); }
+button.danger { background:#ef4444; color:white; padding:.35rem .75rem; font-size:.75rem; margin-left:.5rem; }
 
-    input, select { width:100%; padding:.6rem; border-radius:.75rem; border:1px solid rgba(255,255,255,.1); background:rgba(0,0,0,.3); color:var(--text); margin:.35rem 0; }
-    input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor:pointer; }
+input, select { width:100%; padding:.6rem; border-radius:.75rem; border:1px solid rgba(255,255,255,.1); background:rgba(0,0,0,.3); color:var(--text); margin:.35rem 0; }
+input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor:pointer; }
 
-    .container { max-width:900px; margin:auto; padding:1rem; }
-    .card { background:var(--card); backdrop-filter: blur(12px); border-radius:1.25rem; padding:1.25rem; margin-bottom:1rem; box-shadow:0 10px 30px rgba(0,0,0,.25); }
-    .hidden { display:none; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.75rem; }
+.container { max-width:900px; margin:auto; padding:1rem; }
+.card { background:var(--card); backdrop-filter: blur(12px); border-radius:1.25rem; padding:1.25rem; margin-bottom:1rem; box-shadow:0 10px 30px rgba(0,0,0,.25); }
+.hidden { display:none; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.75rem; }
 
-    table { width:100%; border-collapse:collapse; margin-top:.75rem; }
-    th,td { padding:.5rem; text-align:center; font-size:.9rem; }
-    th { color:var(--muted); font-weight:600; }
-    tr { border-bottom:1px solid rgba(255,255,255,.08); }
+table { width:100%; border-collapse:collapse; margin-top:.75rem; }
+th,td { padding:.5rem; text-align:center; font-size:.9rem; }
+th { color:var(--muted); font-weight:600; }
+tr { border-bottom:1px solid rgba(255,255,255,.08); }
 
-    .week-label { text-align:center; font-weight:700; margin-bottom:.75rem; }
+.week-label { text-align:center; font-weight:700; margin-bottom:.75rem; }
 
-    .loading { position:fixed; bottom:0; left:0; width:100%; background:var(--accent-soft); color:var(--accent); text-align:center; padding:.5rem; font-weight:700; display:none; }
+.loading { position:fixed; bottom:0; left:0; width:100%; background:var(--accent-soft); color:var(--accent); text-align:center; padding:.5rem; font-weight:700; display:none; }
 
-    @media(max-width:600px){ header h1 { font-size:1.3rem; } table th, table td { font-size:.8rem; } }
-    nav { display:flex; justify-content:space-between; margin-bottom:1rem; }
-  </style>
+.bottom-table { margin-top:2rem; }
+
+.save-btn-top { margin-bottom:1rem; }
+
+.admin-save-space { margin-top:1rem; }
+
+@media(max-width:600px){ header h1 { font-size:1.3rem; } table th, table td { font-size:.8rem; } }
+nav { display:flex; justify-content:space-between; margin-bottom:1rem; }
+</style>
 </head>
 <body>
 <header>
-  <h1>Alici Pizza</h1>
-  <h2>Tito Labbieno</h2>
+  <h1>Alice Pizza</h1>
+  <h2>Tito Labieno</h2>
   <div class="by">made by Prince</div>
 </header>
 
 <div class="container">
 
+  <!-- Employee View -->
   <div id="employeeView" class="card">
     <div class="week-label">
       <select id="employeeWeekSelect"></select>
@@ -65,17 +72,20 @@
     </div>
   </div>
 
+  <!-- Admin Login -->
   <div id="adminLogin" class="card hidden">
     <h3>Accesso Admin</h3>
     <input type="password" id="adminPasswordInput" placeholder="Password admin" />
     <button id="loginAdminBtn">Entra</button>
   </div>
 
+  <!-- Admin Dashboard -->
   <div id="adminDashboard" class="card hidden">
     <nav>
-      <button id="saveWeekTopBtn">Salva settimana</button>
       <button id="logoutAdminBtn" class="secondary">Esci</button>
     </nav>
+
+    <button id="saveWeekBtnTop" class="secondary save-btn-top">Salva settimana</button>
 
     <h4>Settimana turni</h4>
     <div class="week-label">
@@ -89,11 +99,20 @@
       <tfoot><tr><th colspan="3">Totale ore settimanali</th><th id="totalWeekHours">0</th></tr></tfoot>
     </table>
 
+    <div class="admin-save-space">
+      <button id="saveWeekBtnBottom" class="secondary">Salva settimana</button>
+    </div>
+
     <h4>Dipendenti</h4>
     <input id="newEmployee" placeholder="Nome dipendente" />
     <button id="addEmployeeBtn">Aggiungi</button>
     <div id="adminEmployeeList"></div>
-    <button id="saveWeekBtn">Salva settimana</button>
+  </div>
+
+  <!-- All Employees Schedule at bottom -->
+  <div class="card bottom-table">
+    <h3>Orario Dipendenti</h3>
+    <div id="allEmployeesSchedule"></div>
   </div>
 
 </div>
@@ -116,7 +135,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+getAnalytics(app);
 const db = getFirestore(app);
 
 const loadingEl = document.getElementById('loadingIndicator');
@@ -130,7 +149,7 @@ const formatWeekLabel=(f,t)=>{const o={day:'numeric',month:'long'};return `Setti
 async function wrapLoading(fn){ try{ showLoading(true); await fn(); } finally{ showLoading(false); } }
 
 function openAdminLogin(){ showView('adminLogin'); }
-function logoutAdmin(){ showView('employeeView'); state.selectedEmployee=null; renderEmployees(); }
+function logoutAdmin(){ showView('employeeView'); state.selectedEmployee=null; renderEmployees(); renderAllEmployeesSchedule(); }
 
 async function loginAdmin(){
   const pw = document.getElementById('adminPasswordInput').value;
@@ -139,7 +158,7 @@ async function loginAdmin(){
   if(docSnap.exists() && docSnap.data().password===pw){
     showView('adminDashboard');
     renderAdminEmployeeSelect();
-    renderScheduleEditor();
+    await renderScheduleEditor();
   } else { alert('Password errata'); }
 }
 
@@ -182,16 +201,18 @@ async function renderScheduleEditor(){
   const weekKey=document.getElementById('adminWeekSelect').value;
   const tbody=document.getElementById('scheduleEditor');
   tbody.innerHTML='';
-  const docRef=doc(db,'employees',e,'weeks',weekKey);
-  const docSnap=await getDoc(docRef);
-  const data=docSnap.exists()?docSnap.data():{};
+  const docRef = doc(db,'employees',e,'weeks',weekKey);
+  const docSnap = await getDoc(docRef);
+  const data = docSnap.exists()? docSnap.data() : {};
   DAYS.forEach(d=>{
     const tr=document.createElement('tr');
     const tdDay=document.createElement('td'); tdDay.textContent=d; tr.appendChild(tdDay);
-    const tdIn=document.createElement('td'); const inInput=document.createElement('input'); inInput.type='time'; inInput.value = data[d]?.in||''; tdIn.appendChild(inInput); tr.appendChild(tdIn);
-    const tdOut=document.createElement('td'); const outInput=document.createElement('input'); outInput.type='time'; outInput.value = data[d]?.out||''; tdOut.appendChild(outInput); tr.appendChild(tdOut);
-    const tdHours=document.createElement('td'); tdHours.textContent = calculateHours(inInput.value,outInput.value).toFixed(2); tr.appendChild(tdHours);
-    tr._sInput=inInput; tr._oInput=outInput; tr._tdHours=tdHours;
+    const tdIn=document.createElement('td'); const inInput=document.createElement('input'); inInput.type='time';
+    inInput.value = data[d]?.in || ''; tdIn.appendChild(inInput); tr.appendChild(tdIn);
+    const tdOut=document.createElement('td'); const outInput=document.createElement('input'); outInput.type='time';
+    outInput.value = data[d]?.out || ''; tdOut.appendChild(outInput); tr.appendChild(tdOut);
+    const tdHours=document.createElement('td'); const hours = calculateHours(inInput.value, outInput.value); tdHours.textContent = hours.toFixed(2); tr.appendChild(tdHours);
+    tr._sInput = inInput; tr._oInput = outInput; tr._tdHours = tdHours;
     tbody.appendChild(tr);
   });
 }
@@ -216,6 +237,33 @@ async function renderEmployeeSchedule(){
   container.innerHTML=html;
 }
 
+async function renderAllEmployeesSchedule(){
+  const container=document.getElementById('allEmployeesSchedule');
+  const weekKey=document.getElementById('employeeWeekSelect').value;
+  container.innerHTML = '';
+  if(!weekKey || state.employees.length === 0) return;
+
+  let html = `<table><thead><tr><th>Dipendente</th>${DAYS.map(d=>`<th>${d}</th>`).join('')}<th>Totale Ore</th></tr></thead><tbody>`;
+  for(const emp of state.employees){
+    const docRef = doc(db,'employees',emp,'weeks',weekKey);
+    const docSnap = await getDoc(docRef);
+    const data = docSnap.exists()? docSnap.data() : {};
+    let totalHours = 0;
+    html += `<tr><td>${emp}</td>`;
+    for(const day of DAYS){
+      const inVal = data[day]?.in || '';
+      const outVal = data[day]?.out || '';
+      const hours = calculateHours(inVal, outVal);
+      totalHours += hours;
+      html += `<td>${inVal && outVal ? `${inVal}–${outVal} (${hours.toFixed(2)}h)` : '-'}</td>`;
+    }
+    html += `<td>${totalHours.toFixed(2)}</td>`;
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
 function generateWeeks2026(){
   const weeks=[];
   let d=new Date('2026-01-05');
@@ -228,8 +276,10 @@ function generateWeeks2026(){
   state.weeks=weeks;
   const eSelect=document.getElementById('employeeWeekSelect');
   const aSelect=document.getElementById('adminWeekSelect');
-  weeks.forEach(w=>{const o1=document.createElement('option');o1.value=w.key;o1.textContent=w.label;eSelect.appendChild(o1);
-  const o2=document.createElement('option');o2.value=w.key;o2.textContent=w.label;aSelect.appendChild(o2);});
+  weeks.forEach(w=>{
+    const o1=document.createElement('option');o1.value=w.key;o1.textContent=w.label;eSelect.appendChild(o1);
+    const o2=document.createElement('option');o2.value=w.key;o2.textContent=w.label;aSelect.appendChild(o2);
+  });
 }
 
 async function loadEmployees(){
@@ -240,6 +290,7 @@ async function loadEmployees(){
     renderEmployees();
     renderAdminEmployeeSelect();
     renderEmployeeSchedule();
+    renderAllEmployeesSchedule();
   });
 }
 
@@ -272,6 +323,7 @@ async function saveWeekData(){
     }
     document.getElementById('totalWeekHours').textContent=totalWeek.toFixed(2);
     renderEmployeeSchedule();
+    renderAllEmployeesSchedule();
   });
 }
 
@@ -280,9 +332,12 @@ document.getElementById('adminButton').onclick=openAdminLogin;
 document.getElementById('loginAdminBtn').onclick=()=>wrapLoading(loginAdmin);
 document.getElementById('logoutAdminBtn').onclick=logoutAdmin;
 document.getElementById('addEmployeeBtn').onclick=addEmployee;
-document.getElementById('saveWeekBtn').onclick=saveWeekData;
-document.getElementById('saveWeekTopBtn').onclick=saveWeekData;
-document.getElementById('employeeWeekSelect').onchange=renderEmployeeSchedule;
+document.getElementById('saveWeekBtnTop').onclick=saveWeekData;
+document.getElementById('saveWeekBtnBottom').onclick=saveWeekData;
+document.getElementById('employeeWeekSelect').onchange=()=>{
+  renderEmployeeSchedule();
+  renderAllEmployeesSchedule();
+};
 document.getElementById('adminWeekSelect').onchange=renderScheduleEditor;
 document.getElementById('adminEmployeeSelect').onchange=renderScheduleEditor;
 
