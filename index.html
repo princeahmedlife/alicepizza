@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Alice Pizza – Turni</title>
+  <title>Alici Pizza – Turni</title>
   <style>
     :root {
       --bg: linear-gradient(180deg,#0b1020,#020617);
@@ -14,7 +14,7 @@
       --muted: #94a3b8;
     }
     * { box-sizing:border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont; }
-    body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); }
+    body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); position:relative; }
     header { padding:1.5rem 1rem 1rem; text-align:center; }
     header h1 { font-size:1.6rem; font-weight:800; }
     header h2 { font-size:1rem; font-weight:600; color:var(--muted); margin-top:.25rem; }
@@ -39,89 +39,250 @@
 
     .week-label { text-align:center; font-weight:700; margin-bottom:.75rem; }
 
+    .loading { position:fixed; bottom:0; left:0; width:100%; background:var(--accent-soft); color:var(--accent); text-align:center; padding:.5rem; font-weight:700; display:none; }
+
     @media(max-width:600px){ header h1 { font-size:1.3rem; } table th, table td { font-size:.8rem; } }
+    nav { display:flex; justify-content:space-between; margin-bottom:1rem; }
   </style>
 </head>
 <body>
 <header>
-  <h1>Alice Pizza</h1>
-  <h2>Tito Labieno</h2>
+  <h1>Alici Pizza</h1>
+  <h2>Tito Labbieno</h2>
   <div class="by">made by Prince</div>
 </header>
 
 <div class="container">
 
-  <!-- VISTA DIPENDENTE -->
   <div id="employeeView" class="card">
-    <div id="currentWeekLabel" class="week-label"></div>
+    <div class="week-label">
+      <select id="employeeWeekSelect"></select>
+    </div>
     <div class="grid" id="employeeButtons"></div>
     <div id="employeeSchedule"></div>
     <div style="text-align:center;margin-top:1rem">
-      <button class="secondary" onclick="openAdminLogin()">Admin</button>
+      <button class="secondary" id="adminButton">Admin</button>
     </div>
   </div>
 
-  <!-- LOGIN ADMIN -->
   <div id="adminLogin" class="card hidden">
     <h3>Accesso Admin</h3>
     <input type="password" id="adminPasswordInput" placeholder="Password admin" />
-    <button onclick="loginAdmin()">Entra</button>
-    <p class="muted">La password può essere modificata dal pannello admin</p>
+    <button id="loginAdminBtn">Entra</button>
   </div>
 
-  <!-- DASHBOARD ADMIN -->
   <div id="adminDashboard" class="card hidden">
-    <h3>Pannello Admin</h3>
-    <button class="secondary" onclick="logoutAdmin()">Esci</button>
-
-    <h4>Cambia password admin</h4>
-    <input type="password" id="newAdminPassword" placeholder="Nuova password admin" />
-    <button onclick="changePassword()">Aggiorna password</button>
-
-    <h4>Dipendenti</h4>
-    <input id="newEmployee" placeholder="Nome dipendente" />
-    <button onclick="addEmployee()">Aggiungi</button>
-    <div id="adminEmployeeList"></div>
+    <nav>
+      <button id="logoutAdminBtn" class="secondary">Esci</button>
+    </nav>
 
     <h4>Settimana turni</h4>
-    <input type="date" id="weekFrom" />
-    <input type="date" id="weekTo" />
+    <div class="week-label">
+      <select id="adminWeekSelect"></select>
+    </div>
     <select id="adminEmployeeSelect"></select>
 
     <table>
-      <thead><tr><th>Giorno</th><th>Entrata</th><th>Uscita</th></tr></thead>
+      <thead><tr><th>Giorno</th><th>Entrata</th><th>Uscita</th><th>Ore</th></tr></thead>
       <tbody id="scheduleEditor"></tbody>
+      <tfoot><tr><th colspan="3">Totale ore settimanali</th><th id="totalWeekHours">0</th></tr></tfoot>
     </table>
+
+    <h4>Dipendenti</h4>
+    <input id="newEmployee" placeholder="Nome dipendente" />
+    <button id="addEmployeeBtn">Aggiungi</button>
+    <div id="adminEmployeeList"></div>
+    <button id="saveWeekBtn">Salva settimana</button>
   </div>
 
 </div>
 
-<script>
+<div class="loading" id="loadingIndicator">Caricamento...</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAZTgEhkDZy5PjfrtJP0PyhVaNj_DRdz8g",
+  authDomain: "alice-pizza-schedule.firebaseapp.com",
+  projectId: "alice-pizza-schedule",
+  storageBucket: "alice-pizza-schedule.firebasestorage.app",
+  messagingSenderId: "434408742284",
+  appId: "1:434408742284:web:9de2c40f3171946d808aa9",
+  measurementId: "G-D2N439W6V5"
+};
+
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
+
+const loadingEl = document.getElementById('loadingIndicator');
 const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
-let state=JSON.parse(localStorage.getItem('scheduleApp'))||{adminPassword:'admin123',employees:[],schedules:{},selectedEmployee:null,activeWeek:null};
-const save=()=>localStorage.setItem('scheduleApp',JSON.stringify(state));
-const show=id=>['employeeView','adminLogin','adminDashboard'].forEach(v=>document.getElementById(v).classList.toggle('hidden',v!==id));
+let state = { employees: [], selectedEmployee: null, activeWeek: null, weeks: [] };
+
+function showLoading(show){ loadingEl.style.display = show ? 'block' : 'none'; }
+const showView=id=>['employeeView','adminLogin','adminDashboard'].forEach(v=>document.getElementById(v).classList.toggle('hidden',v!==id));
 const formatWeekLabel=(f,t)=>{const o={day:'numeric',month:'long'};return `Settimana ${new Date(f).toLocaleDateString('it-IT',o)} – ${new Date(t).toLocaleDateString('it-IT',o)}`};
 
-function renderEmployees(){const b=document.getElementById('employeeButtons');b.innerHTML='';state.employees.forEach(e=>{const x=document.createElement('button');x.textContent=e;x.onclick=()=>{state.selectedEmployee=e;save();renderEmployeeSchedule()};b.appendChild(x)})}
+async function wrapLoading(fn){ try{ showLoading(true); await fn(); } finally{ showLoading(false); } }
 
-function renderEmployeeSchedule(){const box=document.getElementById('employeeSchedule');box.innerHTML='';if(!state.activeWeek||!state.selectedEmployee)return;document.getElementById('currentWeekLabel').textContent=state.activeWeek.label;const d=state.schedules[state.selectedEmployee]?.[state.activeWeek.key]||{};let h='<table><tr><th>Giorno</th><th>Entrata</th><th>Uscita</th></tr>';DAYS.forEach(day=>{const s=d[day]||{};h+=`<tr><td>${day}</td><td>${s.in||'-'}</td><td>${s.out||'-'}</td></tr>`});box.innerHTML=h+'</table>'}
+function openAdminLogin(){ showView('adminLogin'); }
+function logoutAdmin(){ showView('employeeView'); state.selectedEmployee=null; renderEmployees(); }
 
-function openAdminLogin(){show('adminLogin')}
-function loginAdmin(){if(document.getElementById('adminPasswordInput').value===state.adminPassword){show('adminDashboard');renderAdmin()}else alert('Password errata')}
-function logoutAdmin(){show('employeeView');renderEmployeeSchedule()} 
+async function loginAdmin(){
+  const pw = document.getElementById('adminPasswordInput').value;
+  const docRef = doc(db,'admin','password');
+  const docSnap = await getDoc(docRef);
+  if(docSnap.exists() && docSnap.data().password===pw){
+    showView('adminDashboard');
+    renderAdminEmployeeSelect();
+    renderScheduleEditor();
+  } else { alert('Password errata'); }
+}
 
-function changePassword(){const p=document.getElementById('newAdminPassword').value.trim();if(p.length<4) return alert('Password troppo corta');state.adminPassword=p; save(); alert('Password aggiornata'); document.getElementById('newAdminPassword').value='';}
+function renderEmployees(){
+  const container=document.getElementById('employeeButtons');
+  container.innerHTML='';
+  state.employees.forEach(e=>{
+    const btn=document.createElement('button');
+    btn.textContent=e;
+    btn.onclick=()=>{ state.selectedEmployee=e; renderEmployeeSchedule(); };
+    container.appendChild(btn);
+  });
+}
 
-function renderAdmin(){renderEmployees();const l=document.getElementById('adminEmployeeList');l.innerHTML='';state.employees.forEach(e=>{const d=document.createElement('div');d.textContent=e;const r=document.createElement('button');r.textContent='Rimuovi'; r.className='danger';r.onclick=()=>{state.employees=state.employees.filter(x=>x!==e);delete state.schedules[e];save();renderAdmin()};d.appendChild(r);l.appendChild(d)});const s=document.getElementById('adminEmployeeSelect');s.innerHTML='';state.employees.forEach(e=>s.innerHTML+=`<option>${e}</option>`)}
+function renderAdminEmployeeSelect(){
+  const select=document.getElementById('adminEmployeeSelect');
+  select.innerHTML='';
+  state.employees.forEach(e=>{ const opt=document.createElement('option'); opt.value=e; opt.textContent=e; select.appendChild(opt); });
+}
 
-function addEmployee(){const n=document.getElementById('newEmployee').value.trim();if(!n)return;state.employees.push(n);save();renderAdmin()}
+async function updateSchedule(employee,weekKey,day,type,value){
+  const docRef=doc(db,'employees',employee,'weeks',weekKey);
+  const docSnap=await getDoc(docRef);
+  const data=docSnap.exists()?docSnap.data():{};
+  if(!data[day]) data[day]={};
+  data[day][type]=value;
+  await setDoc(docRef,data);
+}
 
-function renderScheduleEditor(){const e=document.getElementById('adminEmployeeSelect').value;const f=weekFrom.value,t=weekTo.value;if(!e||!f||!t)return;const k=f+'_'+t;state.activeWeek={key:k,label:formatWeekLabel(f,t)};state.schedules[e]=state.schedules[e]||{};state.schedules[e][k]=state.schedules[e][k]||{};const b=document.getElementById('scheduleEditor');b.innerHTML='';DAYS.forEach(d=>{const s=state.schedules[e][k][d]||{};b.innerHTML+=`<tr><td>${d}</td><td><input value="${s.in||''}" onchange="updateSchedule('${e}','${k}','${d}','in',this.value)"></td><td><input value="${s.out||''}" onchange="updateSchedule('${e}','${k}','${d}','out',this.value)"></td></tr>`});save();renderEmployeeSchedule()}
-function updateSchedule(e,k,d,t,v){state.schedules[e][k][d]=state.schedules[e][k][d]||{};state.schedules[e][k][d][t]=v;save();renderEmployeeSchedule()}
+function calculateHours(inVal,outVal){
+  if(!inVal||!outVal) return 0;
+  const [inH,inM] = inVal.split(':').map(Number);
+  const [outH,outM] = outVal.split(':').map(Number);
+  const hours = (outH + outM/60) - (inH + inM/60);
+  return hours>0 ? hours : 0;
+}
 
-weekFrom.onchange=renderScheduleEditor;weekTo.onchange=renderScheduleEditor;adminEmployeeSelect.onchange=renderScheduleEditor;
-renderEmployees();renderEmployeeSchedule();
+async function renderScheduleEditor(){
+  const e=document.getElementById('adminEmployeeSelect').value;
+  const weekKey=document.getElementById('adminWeekSelect').value;
+  const tbody=document.getElementById('scheduleEditor');
+  tbody.innerHTML='';
+  DAYS.forEach(d=>{
+    const tr=document.createElement('tr');
+    const tdDay=document.createElement('td'); tdDay.textContent=d; tr.appendChild(tdDay);
+    const tdIn=document.createElement('td'); const inInput=document.createElement('input'); inInput.type='time'; tdIn.appendChild(inInput); tr.appendChild(tdIn);
+    const tdOut=document.createElement('td'); const outInput=document.createElement('input'); outInput.type='time'; tdOut.appendChild(outInput); tr.appendChild(tdOut);
+    const tdHours=document.createElement('td'); tdHours.textContent='0'; tr.appendChild(tdHours);
+    tr._sInput=inInput; tr._oInput=outInput; tr._tdHours=tdHours;
+    tbody.appendChild(tr);
+  });
+}
+
+async function renderEmployeeSchedule(){
+  const container=document.getElementById('employeeSchedule');
+  if(!state.selectedEmployee) { container.innerHTML=''; return; }
+  const weekKey=document.getElementById('employeeWeekSelect').value;
+  const docRef=doc(db,'employees',state.selectedEmployee,'weeks',weekKey);
+  const docSnap=await getDoc(docRef);
+  const data=docSnap.exists()?docSnap.data():{};
+  let html=`<table><thead><tr><th>Giorno</th><th>Entrata</th><th>Uscita</th><th>Ore</th></tr></thead><tbody>`;
+  let total=0;
+  DAYS.forEach(d=>{
+    const inVal=(data[d]&&data[d].in)?data[d].in:'';
+    const outVal=(data[d]&&data[d].out)?data[d].out:'';
+    const hours = calculateHours(inVal,outVal);
+    total += hours;
+    html+=`<tr><td>${d}</td><td>${inVal}</td><td>${outVal}</td><td>${hours.toFixed(2)}</td></tr>`;
+  });
+  html+=`</tbody><tfoot><tr><th colspan="3">Totale ore settimanali</th><th>${total.toFixed(2)}</th></tr></tfoot></table>`;
+  container.innerHTML=html;
+}
+
+function generateWeeks2026(){
+  const weeks=[];
+  let d=new Date('2026-01-05');
+  while(d.getFullYear()===2026){
+    const start=new Date(d);
+    const end=new Date(d); end.setDate(end.getDate()+6);
+    weeks.push({start:new Date(start),end:new Date(end),label:formatWeekLabel(start,end),key:start.toISOString().split('T')[0]+'_'+end.toISOString().split('T')[0]});
+    d.setDate(d.getDate()+7);
+  }
+  state.weeks=weeks;
+  const eSelect=document.getElementById('employeeWeekSelect');
+  const aSelect=document.getElementById('adminWeekSelect');
+  weeks.forEach(w=>{const o1=document.createElement('option');o1.value=w.key;o1.textContent=w.label;eSelect.appendChild(o1);
+  const o2=document.createElement('option');o2.value=w.key;o2.textContent=w.label;aSelect.appendChild(o2);});
+}
+
+async function loadEmployees(){
+  await wrapLoading(async ()=>{
+    const empSnap = await getDocs(collection(db,'employees'));
+    state.employees = [];
+    empSnap.forEach(doc => state.employees.push(doc.id));
+    renderEmployees();
+    renderAdminEmployeeSelect();
+    renderEmployeeSchedule();
+  });
+}
+
+async function addEmployee(){
+  const n=document.getElementById('newEmployee').value.trim();
+  if(!n) return;
+  await wrapLoading(async ()=>{
+    await setDoc(doc(db,'employees',n), {});
+    document.getElementById('newEmployee').value='';
+    await loadEmployees();
+  });
+}
+
+async function saveWeekData(){
+  await wrapLoading(async ()=>{
+    const e=document.getElementById('adminEmployeeSelect').value;
+    const weekKey=document.getElementById('adminWeekSelect').value;
+    const b=document.getElementById('scheduleEditor');
+    const rows = Array.from(b.querySelectorAll('tr'));
+    let totalWeek=0;
+    for(const row of rows){
+      const day = row.children[0].textContent;
+      const inVal = row._sInput.value;
+      const outVal = row._oInput.value;
+      await updateSchedule(e,weekKey,day,'in',inVal);
+      await updateSchedule(e,weekKey,day,'out',outVal);
+      const hours = calculateHours(inVal,outVal);
+      row._tdHours.textContent = hours.toFixed(2);
+      totalWeek += hours;
+    }
+    document.getElementById('totalWeekHours').textContent=totalWeek.toFixed(2);
+    renderEmployeeSchedule();
+  });
+}
+
+// Event listeners
+document.getElementById('adminButton').onclick=openAdminLogin;
+document.getElementById('loginAdminBtn').onclick=()=>wrapLoading(loginAdmin);
+document.getElementById('logoutAdminBtn').onclick=logoutAdmin;
+document.getElementById('addEmployeeBtn').onclick=addEmployee;
+document.getElementById('employeeWeekSelect').onchange=renderEmployeeSchedule;
+document.getElementById('adminWeekSelect').onchange=renderScheduleEditor;
+document.getElementById('adminEmployeeSelect').onchange=renderScheduleEditor;
+document.getElementById('saveWeekBtn').onclick=saveWeekData;
+
+generateWeeks2026();
+loadEmployees();
 </script>
 </body>
 </html>
