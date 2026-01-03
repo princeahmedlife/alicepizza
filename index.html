@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Alice Pizza – Turni</title>
+  <title>Alici Pizza – Turni</title>
   <style>
     :root {
       --bg: linear-gradient(180deg,#0b1020,#020617);
@@ -47,8 +47,8 @@
 </head>
 <body>
 <header>
-  <h1>Alice Pizza</h1>
-  <h2>Tito Labieno</h2>
+  <h1>Alici Pizza</h1>
+  <h2>Tito Labbieno</h2>
   <div class="by">made by Prince</div>
 </header>
 
@@ -73,6 +73,7 @@
 
   <div id="adminDashboard" class="card hidden">
     <nav>
+      <button id="saveWeekTopBtn">Salva settimana</button>
       <button id="logoutAdminBtn" class="secondary">Esci</button>
     </nav>
 
@@ -181,12 +182,15 @@ async function renderScheduleEditor(){
   const weekKey=document.getElementById('adminWeekSelect').value;
   const tbody=document.getElementById('scheduleEditor');
   tbody.innerHTML='';
+  const docRef=doc(db,'employees',e,'weeks',weekKey);
+  const docSnap=await getDoc(docRef);
+  const data=docSnap.exists()?docSnap.data():{};
   DAYS.forEach(d=>{
     const tr=document.createElement('tr');
     const tdDay=document.createElement('td'); tdDay.textContent=d; tr.appendChild(tdDay);
-    const tdIn=document.createElement('td'); const inInput=document.createElement('input'); inInput.type='time'; tdIn.appendChild(inInput); tr.appendChild(tdIn);
-    const tdOut=document.createElement('td'); const outInput=document.createElement('input'); outInput.type='time'; tdOut.appendChild(outInput); tr.appendChild(tdOut);
-    const tdHours=document.createElement('td'); tdHours.textContent='0'; tr.appendChild(tdHours);
+    const tdIn=document.createElement('td'); const inInput=document.createElement('input'); inInput.type='time'; inInput.value = data[d]?.in||''; tdIn.appendChild(inInput); tr.appendChild(tdIn);
+    const tdOut=document.createElement('td'); const outInput=document.createElement('input'); outInput.type='time'; outInput.value = data[d]?.out||''; tdOut.appendChild(outInput); tr.appendChild(tdOut);
+    const tdHours=document.createElement('td'); tdHours.textContent = calculateHours(inInput.value,outInput.value).toFixed(2); tr.appendChild(tdHours);
     tr._sInput=inInput; tr._oInput=outInput; tr._tdHours=tdHours;
     tbody.appendChild(tr);
   });
@@ -276,10 +280,11 @@ document.getElementById('adminButton').onclick=openAdminLogin;
 document.getElementById('loginAdminBtn').onclick=()=>wrapLoading(loginAdmin);
 document.getElementById('logoutAdminBtn').onclick=logoutAdmin;
 document.getElementById('addEmployeeBtn').onclick=addEmployee;
+document.getElementById('saveWeekBtn').onclick=saveWeekData;
+document.getElementById('saveWeekTopBtn').onclick=saveWeekData;
 document.getElementById('employeeWeekSelect').onchange=renderEmployeeSchedule;
 document.getElementById('adminWeekSelect').onchange=renderScheduleEditor;
 document.getElementById('adminEmployeeSelect').onchange=renderScheduleEditor;
-document.getElementById('saveWeekBtn').onclick=saveWeekData;
 
 generateWeeks2026();
 loadEmployees();
