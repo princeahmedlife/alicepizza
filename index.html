@@ -1,1 +1,144 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alici Pizza – Schedule</title>
+  <style>
+    :root {
+      --bg: linear-gradient(180deg,#0b1020,#020617);
+      --card: rgba(255,255,255,0.06);
+      --accent: #38bdf8;
+      --accent-soft: rgba(56,189,248,.15);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+    }
+    * { box-sizing:border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont; }
+    body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); }
+    header { padding:1.5rem 1rem 1rem; text-align:center; }
+    header h1 { font-size:1.6rem; font-weight:800; letter-spacing:.5px; }
+    header h2 { font-size:1rem; font-weight:600; color:var(--muted); margin-top:.25rem; }
+    header .by { font-size:.7rem; color:var(--muted); margin-top:.25rem; }
+
+    button {
+      background:var(--accent);
+      border:0;
+      border-radius:999px;
+      padding:.6rem 1.1rem;
+      font-weight:700;
+      cursor:pointer;
+    }
+    button.secondary { background:var(--accent-soft); color:var(--accent); }
+
+    input, select {
+      width:100%;
+      padding:.6rem;
+      border-radius:.75rem;
+      border:1px solid rgba(255,255,255,.1);
+      background:rgba(0,0,0,.3);
+      color:var(--text);
+      margin:.35rem 0;
+    }
+
+    .container { max-width:900px; margin:auto; padding:1rem; }
+    .card {
+      background:var(--card);
+      backdrop-filter: blur(12px);
+      border-radius:1.25rem;
+      padding:1.25rem;
+      margin-bottom:1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .hidden { display:none; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.75rem; }
+
+    table { width:100%; border-collapse:collapse; margin-top:.75rem; }
+    th,td { padding:.5rem; text-align:center; font-size:.9rem; }
+    th { color:var(--muted); font-weight:600; }
+    tr { border-bottom:1px solid rgba(255,255,255,.08); }
+
+    .week-label { text-align:center; font-weight:700; margin-bottom:.75rem; }
+
+    @media(max-width:600px){
+      header h1 { font-size:1.3rem; }
+      table th, table td { font-size:.8rem; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Alici Pizza</h1>
+  <h2>Tito Labbieno</h2>
+  <div class="by">made by Prince</div>
+</header>
+
+<div class="container">
+
+  <!-- EMPLOYEE VIEW -->
+  <div id="employeeView" class="card">
+    <div id="currentWeekLabel" class="week-label"></div>
+    <div class="grid" id="employeeButtons"></div>
+    <div id="employeeSchedule"></div>
+    <div style="text-align:center;margin-top:1rem">
+      <button class="secondary" onclick="openAdminLogin()">Admin</button>
+    </div>
+  </div>
+
+  <!-- ADMIN LOGIN -->
+  <div id="adminLogin" class="card hidden">
+    <h3>Admin Login</h3>
+    <input type="password" id="adminPasswordInput" placeholder="Admin password" />
+    <button onclick="loginAdmin()">Login</button>
+  </div>
+
+  <!-- ADMIN DASHBOARD -->
+  <div id="adminDashboard" class="card hidden">
+    <h3>Admin Dashboard</h3>
+    <button class="secondary" onclick="logoutAdmin()">Exit</button>
+
+    <h4>Employees</h4>
+    <input id="newEmployee" placeholder="Employee name" />
+    <button onclick="addEmployee()">Add</button>
+    <div id="adminEmployeeList"></div>
+
+    <h4>Schedule Week</h4>
+    <input type="date" id="weekFrom" />
+    <input type="date" id="weekTo" />
+    <select id="adminEmployeeSelect"></select>
+
+    <table>
+      <thead><tr><th>Day</th><th>In</th><th>Out</th></tr></thead>
+      <tbody id="scheduleEditor"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+let state=JSON.parse(localStorage.getItem('scheduleApp'))||{adminPassword:'admin123',employees:[],schedules:{},selectedEmployee:null,activeWeek:null};
+const save=()=>localStorage.setItem('scheduleApp',JSON.stringify(state));
+const show=id=>['employeeView','adminLogin','adminDashboard'].forEach(v=>document.getElementById(v).classList.toggle('hidden',v!==id));
+const formatWeekLabel=(f,t)=>{const o={day:'numeric',month:'long'};return `Week ${new Date(f).toLocaleDateString(undefined,o)} – ${new Date(t).toLocaleDateString(undefined,o)}`};
+
+function renderEmployees(){const b=document.getElementById('employeeButtons');b.innerHTML='';state.employees.forEach(e=>{const x=document.createElement('button');x.textContent=e;x.onclick=()=>{state.selectedEmployee=e;save();renderEmployeeSchedule()};b.appendChild(x)})}
+
+function renderEmployeeSchedule(){const box=document.getElementById('employeeSchedule');box.innerHTML='';if(!state.activeWeek||!state.selectedEmployee)return;document.getElementById('currentWeekLabel').textContent=state.activeWeek.label;const d=state.schedules[state.selectedEmployee]?.[state.activeWeek.key]||{};let h='<table><tr><th>Day</th><th>In</th><th>Out</th></tr>';DAYS.forEach(day=>{const s=d[day]||{};h+=`<tr><td>${day}</td><td>${s.in||'-'}</td><td>${s.out||'-'}</td></tr>`});box.innerHTML=h+'</table>'}
+
+function openAdminLogin(){show('adminLogin')}
+function loginAdmin(){if(document.getElementById('adminPasswordInput').value===state.adminPassword){show('adminDashboard');renderAdmin()}else alert('Wrong password')}
+function logoutAdmin(){show('employeeView');renderEmployeeSchedule()}
+
+function renderAdmin(){renderEmployees();const l=document.getElementById('adminEmployeeList');l.innerHTML='';state.employees.forEach(e=>{const d=document.createElement('div');d.textContent=e;const r=document.createElement('button');r.textContent='Remove';r.onclick=()=>{state.employees=state.employees.filter(x=>x!==e);delete state.schedules[e];save();renderAdmin()};d.appendChild(r);l.appendChild(d)});const s=document.getElementById('adminEmployeeSelect');s.innerHTML='';state.employees.forEach(e=>s.innerHTML+=`<option>${e}</option>`)}
+
+function addEmployee(){const n=document.getElementById('newEmployee').value.trim();if(!n)return;state.employees.push(n);save();renderAdmin()}
+
+function renderScheduleEditor(){const e=document.getElementById('adminEmployeeSelect').value;const f=weekFrom.value,t=weekTo.value;if(!e||!f||!t)return;const k=f+'_'+t;state.activeWeek={key:k,label:formatWeekLabel(f,t)};state.schedules[e]=state.schedules[e]||{};state.schedules[e][k]=state.schedules[e][k]||{};const b=document.getElementById('scheduleEditor');b.innerHTML='';DAYS.forEach(d=>{const s=state.schedules[e][k][d]||{};b.innerHTML+=`<tr><td>${d}</td><td><input value="${s.in||''}" onchange="updateSchedule('${e}','${k}','${d}','in',this.value)"></td><td><input value="${s.out||''}" onchange="updateSchedule('${e}','${k}','${d}','out',this.value)"></td></tr>`});save();renderEmployeeSchedule()}
+function updateSchedule(e,k,d,t,v){state.schedules[e][k][d]=state.schedules[e][k][d]||{};state.schedules[e][k][d][t]=v;save();renderEmployeeSchedule()}
+
+weekFrom.onchange=renderScheduleEditor;weekTo.onchange=renderScheduleEditor;adminEmployeeSelect.onchange=renderScheduleEditor;
+renderEmployees();renderEmployeeSchedule();
+</script>
+</body>
+</html>
