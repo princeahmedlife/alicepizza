@@ -1,394 +1,622 @@
 <!DOCTYPE html>
 <html lang="it">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Alice Pizza – Turni</title>
-<style>
-:root {
-  --bg: linear-gradient(180deg,#0b1020,#020617);
-  --card: rgba(255,255,255,0.06);
-  --accent: #38bdf8;
-  --accent-soft: rgba(56,189,248,.15);
-  --text: #e5e7eb;
-  --muted: #94a3b8;
-}
-* { box-sizing:border-box; font-family: system-ui, -apple-system, BlinkMacSystemFont; }
-body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); position:relative; }
-header { padding:1.5rem 1rem 1rem; text-align:center; }
-header h1 { font-size:1.6rem; font-weight:800; }
-header h2 { font-size:1rem; font-weight:600; color:var(--muted); margin-top:.25rem; }
-header .by { font-size:.7rem; color:var(--muted); margin-top:.25rem; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alice Pizza – Turni</title>
+    <style>
+      :root {
+        --bg: linear-gradient(180deg, #0b1020, #020617);
+        --card: rgba(255, 255, 255, 0.06);
+        --accent: #38bdf8;
+        --accent-soft: rgba(56, 189, 248, 0.15);
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+      }
+      * {
+        box-sizing: border-box;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        position: relative;
+      }
+      header {
+        padding: 1.5rem 1rem 1rem;
+        text-align: center;
+      }
+      header h1 {
+        font-size: 1.6rem;
+        font-weight: 800;
+      }
+      header h2 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--muted);
+        margin-top: 0.25rem;
+      }
+       .by {
+        font-size: 0.7rem;
+        color: var(--muted);
+        margin-top: 0.25rem;
+        text-align: center;
+      }
 
-button { background:var(--accent); border:0; border-radius:999px; padding:.6rem 1.1rem; font-weight:700; cursor:pointer; }
-button.secondary { background:var(--accent-soft); color:var(--accent); }
-button.danger { background:#ef4444; color:white; padding:.35rem .75rem; font-size:.75rem; margin-left:.5rem; }
-button.active-employee { background: var(--accent-soft); color: var(--accent); border: 2px solid var(--accent); }
+      button {
+        background: var(--accent);
+        border: 0;
+        border-radius: 999px;
+        padding: 0.6rem 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      button.danger {
+        background: #ef4444;
+        color: white;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.75rem;
+        margin-left: 0.5rem;
+      }
+      button.active-employee {
+        background: var(--accent-soft);
+        color: var(--accent);
+        border: 2px solid var(--accent);
+      }
 
-input, select { width:100%; padding:.6rem; border-radius:.75rem; border:1px solid rgba(255,255,255,.1); background:rgba(0,0,0,.3); color:var(--text); margin:.35rem 0; }
-input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor:pointer; }
+      input,
+      select {
+        width: 100%;
+        padding: 0.6rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(0, 0, 0, 0.3);
+        color: var(--text);
+        margin: 0.35rem 0;
+      }
+      input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+      }
 
-.container { max-width:900px; margin:auto; padding:1rem; }
-.card { background:var(--card); backdrop-filter: blur(12px); border-radius:1.25rem; padding:1.25rem; margin-bottom:1rem; box-shadow:0 10px 30px rgba(0,0,0,.25); }
-.hidden { display:none; }
-.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.75rem; }
+      .container {
+        max-width: 900px;
+        margin: auto;
+        padding: 1rem;
+      }
+      .card {
+        background: var(--card);
+        backdrop-filter: blur(12px);
+        border-radius: 1.25rem;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      }
+      .hidden {
+        display: none;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.75rem;
+      }
 
-table { width:100%; border-collapse:collapse; margin-top:.75rem; }
-th,td { padding:.5rem; text-align:center; font-size:.9rem; }
-th { color:var(--muted); font-weight:600; }
-tr { border-bottom:1px solid rgba(255,255,255,.08); }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 0.75rem;
+      }
+      th,
+      td {
+        padding: 0.5rem;
+        text-align: center;
+        font-size: 0.9rem;
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+      }
+      tr {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
 
-.week-label { text-align:center; font-weight:700; margin-bottom:.75rem; }
+      .week-label {
+        text-align: center;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+      }
 
-.loading { position:fixed; bottom:0; left:0; width:100%; background:var(--accent-soft); color:var(--accent); text-align:center; padding:.5rem; font-weight:700; display:none; }
+      .loading {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: var(--accent-soft);
+        color: var(--accent);
+        text-align: center;
+        padding: 0.5rem;
+        font-weight: 700;
+        display: none;
+      }
 
-.bottom-table {
-  margin-top:2rem;
-  overflow-x:auto; 
-  -webkit-overflow-scrolling: touch;
-  padding-bottom:1rem;
-}
-.bottom-table table {
-  min-width:800px; 
-}
-.bottom-table th, .bottom-table td {
-  white-space: nowrap; 
-}
+      .bottom-table {
+        margin-top: 2rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 1rem;
+      }
+      .bottom-table table {
+        min-width: 800px;
+      }
+      .bottom-table th,
+      .bottom-table td {
+        white-space: nowrap;
+      }
 
-.save-btn-top { margin-bottom:1rem; }
-.admin-save-space { margin-top:1rem; }
+      .save-btn-top {
+        margin-bottom: 1rem;
+      }
+      .admin-save-space {
+        margin-top: 1rem;
+      }
 
-@media(max-width:600px){
-  header h1 { font-size:1.3rem; }
-  table th, table td { font-size:.8rem; }
-  .bottom-table table th, .bottom-table table td {
-    font-size:0.75rem;
-    padding:0.3rem;
-  }
-}
+      @media (max-width: 600px) {
+        header h1 {
+          font-size: 1.3rem;
+        }
+        table th,
+        table td {
+          font-size: 0.8rem;
+        }
+        .bottom-table table th,
+        .bottom-table table td {
+          font-size: 0.75rem;
+          padding: 0.3rem;
+        }
+      }
 
-nav { display:flex; justify-content:space-between; margin-bottom:1rem; }
-</style>
-</head>
-<body>
-<header>
-  <h1>Alice Pizza</h1>
-  <h2>Tito labieno</h2>
-  <div class="by">Fatto da Prince 👑 </div>
-</header>
+      nav {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Alice Pizza</h1>
+      <h2>Tito labieno</h2>
+    </header>
 
-<div class="container">
+    <div class="container">
+      <!-- Employee View -->
+      <div id="employeeView" class="card">
+        <div class="week-label">
+          <select id="employeeWeekSelect"></select>
+        </div>
+        <div class="grid" id="employeeButtons"></div>
+        <div id="employeeSchedule"></div>
+        <div style="text-align: center; margin-top: 1rem">
+          <button class="secondary" id="adminButton">Admin</button>
+        </div>
+      </div>
 
-  <!-- Employee View -->
-  <div id="employeeView" class="card">
-    <div class="week-label">
-      <select id="employeeWeekSelect"></select>
+      <!-- Admin Login -->
+      <div id="adminLogin" class="card hidden">
+        <h3>Accesso Admin</h3>
+        <input
+          type="password"
+          id="adminPasswordInput"
+          placeholder="Password admin"
+        />
+        <button id="loginAdminBtn">Entra</button>
+      </div>
+
+      <!-- Admin Dashboard -->
+      <div id="adminDashboard" class="card hidden">
+        <nav>
+          <button id="logoutAdminBtn" class="secondary">Esci</button>
+        </nav>
+
+        <button id="saveWeekBtnTop" class="secondary save-btn-top">
+          Salva settimana
+        </button>
+
+        <h4>Settimana turni</h4>
+        <div class="week-label">
+          <select id="adminWeekSelect"></select>
+        </div>
+        <select id="adminEmployeeSelect"></select>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Giorno</th>
+              <th>Entrata</th>
+              <th>Uscita</th>
+              <th>Ore</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleEditor"></tbody>
+          <tfoot>
+            <tr>
+              <th colspan="3">Totale ore settimanali</th>
+              <th id="totalWeekHours">0</th>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="admin-save-space">
+          <button id="saveWeekBtnBottom" class="secondary">
+            Salva settimana
+          </button>
+        </div>
+
+        <h4>Dipendenti</h4>
+        <input id="newEmployee" placeholder="Nome dipendente" />
+        <button id="addEmployeeBtn">Aggiungi</button>
+        <div id="adminEmployeeList"></div>
+      </div>
+ <div class="by">Fatto da Prince 👑</div>
+      <!-- All Employees Schedule at bottom -->
+      <div class="card bottom-table">
+        <h3>Orario Dipendenti</h3>
+        <div id="allEmployeesSchedule"></div>
+      </div>
+     
     </div>
-    <div class="grid" id="employeeButtons"></div>
-    <div id="employeeSchedule"></div>
-    <div style="text-align:center;margin-top:1rem">
-      <button class="secondary" id="adminButton">Admin</button>
-    </div>
-  </div>
 
-  <!-- Admin Login -->
-  <div id="adminLogin" class="card hidden">
-    <h3>Accesso Admin</h3>
-    <input type="password" id="adminPasswordInput" placeholder="Password admin" />
-    <button id="loginAdminBtn">Entra</button>
-  </div>
+    <div class="loading" id="loadingIndicator">Caricamento...</div>
 
-  <!-- Admin Dashboard -->
-  <div id="adminDashboard" class="card hidden">
-    <nav>
-      <button id="logoutAdminBtn" class="secondary">Esci</button>
-    </nav>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        getDoc,
+        collection,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js";
 
-    <button id="saveWeekBtnTop" class="secondary save-btn-top">Salva settimana</button>
+      const firebaseConfig = {
+        apiKey: "AIzaSyAZTgEhkDZy5PjfrtJP0PyhVaNj_DRdz8g",
+        authDomain: "alice-pizza-schedule.firebaseapp.com",
+        projectId: "alice-pizza-schedule",
+        storageBucket: "alice-pizza-schedule.firebasestorage.app",
+        messagingSenderId: "434408742284",
+        appId: "1:434408742284:web:9de2c40f3171946d808aa9",
+        measurementId: "G-D2N439W6V5",
+      };
 
-    <h4>Settimana turni</h4>
-    <div class="week-label">
-      <select id="adminWeekSelect"></select>
-    </div>
-    <select id="adminEmployeeSelect"></select>
+      const app = initializeApp(firebaseConfig);
+      getAnalytics(app);
+      const db = getFirestore(app);
 
-    <table>
-      <thead><tr><th>Giorno</th><th>Entrata</th><th>Uscita</th><th>Ore</th></tr></thead>
-      <tbody id="scheduleEditor"></tbody>
-      <tfoot><tr><th colspan="3">Totale ore settimanali</th><th id="totalWeekHours">0</th></tr></tfoot>
-    </table>
+      const loadingEl = document.getElementById("loadingIndicator");
+      const DAYS = [
+        "Lunedì",
+        "Martedì",
+        "Mercoledì",
+        "Giovedì",
+        "Venerdì",
+        "Sabato",
+        "Domenica",
+      ];
+      let state = {
+        employees: [],
+        selectedEmployee: null,
+        activeWeek: null,
+        weeks: [],
+      };
 
-    <div class="admin-save-space">
-      <button id="saveWeekBtnBottom" class="secondary">Salva settimana</button>
-    </div>
+      function showLoading(show) {
+        loadingEl.style.display = show ? "block" : "none";
+      }
+      const showView = (id) =>
+        ["employeeView", "adminLogin", "adminDashboard"].forEach((v) =>
+          document.getElementById(v).classList.toggle("hidden", v !== id)
+        );
+      const formatWeekLabel = (f, t) => {
+        const o = { day: "numeric", month: "long" };
+        return `Settimana ${new Date(f).toLocaleDateString(
+          "it-IT",
+          o
+        )} – ${new Date(t).toLocaleDateString("it-IT", o)}`;
+      };
 
-    <h4>Dipendenti</h4>
-    <input id="newEmployee" placeholder="Nome dipendente" />
-    <button id="addEmployeeBtn">Aggiungi</button>
-    <div id="adminEmployeeList"></div>
-  </div>
+      async function wrapLoading(fn) {
+        try {
+          showLoading(true);
+          await fn();
+        } finally {
+          showLoading(false);
+        }
+      }
 
-  <!-- All Employees Schedule at bottom -->
-  <div class="card bottom-table">
-    <h3>Orario Dipendenti</h3>
-    <div id="allEmployeesSchedule"></div>
-  </div>
+      function openAdminLogin() {
+        showView("adminLogin");
+      }
+      function logoutAdmin() {
+        showView("employeeView");
+        state.selectedEmployee = null;
+        renderEmployees();
+        renderAllEmployeesSchedule();
+      }
 
-</div>
+      async function loginAdmin() {
+        const pw = document.getElementById("adminPasswordInput").value;
+        const docRef = doc(db, "admin", "password");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists() && docSnap.data().password === pw) {
+          showView("adminDashboard");
+          renderAdminEmployeeSelect();
+          await renderScheduleEditor();
+        } else {
+          alert("Password errata");
+        }
+      }
 
-<div class="loading" id="loadingIndicator">Caricamento...</div>
+      function renderEmployees() {
+        const container = document.getElementById("employeeButtons");
+        container.innerHTML = "";
+        state.employees.forEach((e) => {
+          const btn = document.createElement("button");
+          btn.textContent = e;
+          if (state.selectedEmployee === e) {
+            btn.classList.add("active-employee");
+          }
+          btn.onclick = () => {
+            state.selectedEmployee = e;
+            renderEmployees();
+            renderEmployeeSchedule();
+          };
+          container.appendChild(btn);
+        });
+      }
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js";
+      function renderAdminEmployeeSelect() {
+        const select = document.getElementById("adminEmployeeSelect");
+        select.innerHTML = "";
+        state.employees.forEach((e) => {
+          const opt = document.createElement("option");
+          opt.value = e;
+          opt.textContent = e;
+          select.appendChild(opt);
+        });
+      }
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAZTgEhkDZy5PjfrtJP0PyhVaNj_DRdz8g",
-  authDomain: "alice-pizza-schedule.firebaseapp.com",
-  projectId: "alice-pizza-schedule",
-  storageBucket: "alice-pizza-schedule.firebasestorage.app",
-  messagingSenderId: "434408742284",
-  appId: "1:434408742284:web:9de2c40f3171946d808aa9",
-  measurementId: "G-D2N439W6V5"
-};
+      async function updateSchedule(employee, weekKey, day, type, value) {
+        const docRef = doc(db, "employees", employee, "weeks", weekKey);
+        const docSnap = await getDoc(docRef);
+        const data = docSnap.exists() ? docSnap.data() : {};
+        if (!data[day]) data[day] = {};
+        data[day][type] = value;
+        await setDoc(docRef, data);
+      }
 
-const app = initializeApp(firebaseConfig);
-getAnalytics(app);
-const db = getFirestore(app);
+      function calculateHours(inVal, outVal) {
+        if (!inVal || !outVal) return 0;
+        const [inH, inM] = inVal.split(":").map(Number);
+        const [outH, outM] = outVal.split(":").map(Number);
+        const hours = outH + outM / 60 - (inH + inM / 60);
+        return hours > 0 ? hours : 0;
+      }
 
-const loadingEl = document.getElementById('loadingIndicator');
-const DAYS=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'];
-let state = { employees: [], selectedEmployee: null, activeWeek: null, weeks: [] };
+      async function renderScheduleEditor() {
+        const e = document.getElementById("adminEmployeeSelect").value;
+        const weekKey = document.getElementById("adminWeekSelect").value;
+        const tbody = document.getElementById("scheduleEditor");
+        tbody.innerHTML = "";
+        const docRef = doc(db, "employees", e, "weeks", weekKey);
+        const docSnap = await getDoc(docRef);
+        const data = docSnap.exists() ? docSnap.data() : {};
+        DAYS.forEach((d) => {
+          const tr = document.createElement("tr");
+          const tdDay = document.createElement("td");
+          tdDay.textContent = d;
+          tr.appendChild(tdDay);
 
-function showLoading(show){ loadingEl.style.display = show ? 'block' : 'none'; }
-const showView=id=>['employeeView','adminLogin','adminDashboard'].forEach(v=>document.getElementById(v).classList.toggle('hidden',v!==id));
-const formatWeekLabel=(f,t)=>{const o={day:'numeric',month:'long'};return `Settimana ${new Date(f).toLocaleDateString('it-IT',o)} – ${new Date(t).toLocaleDateString('it-IT',o)}`};
+          // 24h time inputs
+          const tdIn = document.createElement("td");
+          const inInput = document.createElement("input");
+          inInput.type = "time";
+          inInput.step = 60; // force 24h
+          inInput.value = data[d]?.in || "";
+          tdIn.appendChild(inInput);
+          tr.appendChild(tdIn);
 
-async function wrapLoading(fn){ try{ showLoading(true); await fn(); } finally{ showLoading(false); } }
+          const tdOut = document.createElement("td");
+          const outInput = document.createElement("input");
+          outInput.type = "time";
+          outInput.step = 60; // force 24h
+          outInput.value = data[d]?.out || "";
+          tdOut.appendChild(outInput);
+          tr.appendChild(tdOut);
 
-function openAdminLogin(){ showView('adminLogin'); }
-function logoutAdmin(){ showView('employeeView'); state.selectedEmployee=null; renderEmployees(); renderAllEmployeesSchedule(); }
+          const tdHours = document.createElement("td");
+          const hours = calculateHours(inInput.value, outInput.value);
+          tdHours.textContent = hours.toFixed(2);
+          tr.appendChild(tdHours);
 
-async function loginAdmin(){
-  const pw = document.getElementById('adminPasswordInput').value;
-  const docRef = doc(db,'admin','password');
-  const docSnap = await getDoc(docRef);
-  if(docSnap.exists() && docSnap.data().password===pw){
-    showView('adminDashboard');
-    renderAdminEmployeeSelect();
-    await renderScheduleEditor();
-  } else { alert('Password errata'); }
-}
+          tr._sInput = inInput;
+          tr._oInput = outInput;
+          tr._tdHours = tdHours;
+          tbody.appendChild(tr);
+        });
+      }
 
-function renderEmployees(){
-  const container = document.getElementById('employeeButtons');
-  container.innerHTML = '';
-  state.employees.forEach(e => {
-    const btn = document.createElement('button');
-    btn.textContent = e;
-    if (state.selectedEmployee === e) {
-      btn.classList.add('active-employee');
-    }
-    btn.onclick = () => {
-      state.selectedEmployee = e;
-      renderEmployees();        
-      renderEmployeeSchedule(); 
-    };
-    container.appendChild(btn);
-  });
-}
+      async function renderEmployeeSchedule() {
+        const container = document.getElementById("employeeSchedule");
+        if (!state.selectedEmployee) {
+          container.innerHTML = "";
+          return;
+        }
+        const weekKey = document.getElementById("employeeWeekSelect").value;
+        const docRef = doc(
+          db,
+          "employees",
+          state.selectedEmployee,
+          "weeks",
+          weekKey
+        );
+        const docSnap = await getDoc(docRef);
+        const data = docSnap.exists() ? docSnap.data() : {};
+        let html = `<table><thead><tr><th>Giorno</th><th>Entrata</th><th>Uscita</th><th>Ore</th></tr></thead><tbody>`;
+        let total = 0;
+        DAYS.forEach((d) => {
+          const inVal = data[d] && data[d].in ? data[d].in : "";
+          const outVal = data[d] && data[d].out ? data[d].out : "";
+          const hours = calculateHours(inVal, outVal);
+          total += hours;
+          html += `<tr><td>${d}</td><td>${inVal}</td><td>${outVal}</td><td>${hours.toFixed(
+            2
+          )}</td></tr>`;
+        });
+        html += `</tbody><tfoot><tr><th colspan="3">Totale ore settimanali</th><th>${total.toFixed(
+          2
+        )}</th></tr></tfoot></table>`;
+        container.innerHTML = html;
+      }
 
-function renderAdminEmployeeSelect(){
-  const select=document.getElementById('adminEmployeeSelect');
-  select.innerHTML='';
-  state.employees.forEach(e=>{ const opt=document.createElement('option'); opt.value=e; opt.textContent=e; select.appendChild(opt); });
-}
+      async function renderAllEmployeesSchedule() {
+        const container = document.getElementById("allEmployeesSchedule");
+        const weekKey = document.getElementById("employeeWeekSelect").value;
+        container.innerHTML = "";
+        if (!weekKey || state.employees.length === 0) return;
 
-async function updateSchedule(employee,weekKey,day,type,value){
-  const docRef=doc(db,'employees',employee,'weeks',weekKey);
-  const docSnap=await getDoc(docRef);
-  const data=docSnap.exists()?docSnap.data():{};
-  if(!data[day]) data[day]={};
-  data[day][type]=value;
-  await setDoc(docRef,data);
-}
+        let html = `<table><thead><tr><th>Dipendente</th>${DAYS.map(
+          (d) => `<th>${d}</th>`
+        ).join("")}<th>Totale Ore</th></tr></thead><tbody>`;
+        for (const emp of state.employees) {
+          const docRef = doc(db, "employees", emp, "weeks", weekKey);
+          const docSnap = await getDoc(docRef);
+          const data = docSnap.exists() ? docSnap.data() : {};
+          let totalHours = 0;
+          html += `<tr><td>${emp}</td>`;
+          for (const day of DAYS) {
+            const inVal = data[day]?.in || "";
+            const outVal = data[day]?.out || "";
+            const hours = calculateHours(inVal, outVal);
+            totalHours += hours;
+            html += `<td>${
+              inVal && outVal
+                ? `${inVal}–${outVal} (${hours.toFixed(2)}h)`
+                : "-"
+            }</td>`;
+          }
+          html += `<td>${totalHours.toFixed(2)}</td>`;
+          html += "</tr>";
+        }
+        html += "</tbody></table>";
+        container.innerHTML = html;
+      }
 
-function calculateHours(inVal,outVal){
-  if(!inVal||!outVal) return 0;
-  const [inH,inM] = inVal.split(':').map(Number);
-  const [outH,outM] = outVal.split(':').map(Number);
-  const hours = (outH + outM/60) - (inH + inM/60);
-  return hours>0 ? hours : 0;
-}
+      function generateWeeks2026() {
+        const weeks = [];
+        let d = new Date("2026-01-05");
+        while (d.getFullYear() === 2026) {
+          const start = new Date(d);
+          const end = new Date(d);
+          end.setDate(end.getDate() + 6);
+          weeks.push({
+            start: new Date(start),
+            end: new Date(end),
+            label: formatWeekLabel(start, end),
+            key:
+              start.toISOString().split("T")[0] +
+              "_" +
+              end.toISOString().split("T")[0],
+          });
+          d.setDate(d.getDate() + 7);
+        }
+        state.weeks = weeks;
+        const eSelect = document.getElementById("employeeWeekSelect");
+        const aSelect = document.getElementById("adminWeekSelect");
+        weeks.forEach((w) => {
+          const o1 = document.createElement("option");
+          o1.value = w.key;
+          o1.textContent = w.label;
+          eSelect.appendChild(o1);
+          const o2 = document.createElement("option");
+          o2.value = w.key;
+          o2.textContent = w.label;
+          aSelect.appendChild(o2);
+        });
+      }
 
-async function renderScheduleEditor(){
-  const e=document.getElementById('adminEmployeeSelect').value;
-  const weekKey=document.getElementById('adminWeekSelect').value;
-  const tbody=document.getElementById('scheduleEditor');
-  tbody.innerHTML='';
-  const docRef = doc(db,'employees',e,'weeks',weekKey);
-  const docSnap = await getDoc(docRef);
-  const data = docSnap.exists()? docSnap.data() : {};
-  DAYS.forEach(d=>{
-    const tr=document.createElement('tr');
-    const tdDay=document.createElement('td'); tdDay.textContent=d; tr.appendChild(tdDay);
+      async function loadEmployees() {
+        await wrapLoading(async () => {
+          const empSnap = await getDocs(collection(db, "employees"));
+          state.employees = [];
+          empSnap.forEach((doc) => state.employees.push(doc.id));
+          renderEmployees();
+          renderAdminEmployeeSelect();
+          renderEmployeeSchedule();
+          renderAllEmployeesSchedule();
+        });
+      }
 
-    // 24h time inputs
-    const tdIn=document.createElement('td'); 
-    const inInput=document.createElement('input'); 
-    inInput.type='time'; 
-    inInput.step = 60; // force 24h
-    inInput.value = data[d]?.in || ''; 
-    tdIn.appendChild(inInput); 
-    tr.appendChild(tdIn);
+      async function addEmployee() {
+        const n = document.getElementById("newEmployee").value.trim();
+        if (!n) return;
+        await wrapLoading(async () => {
+          await setDoc(doc(db, "employees", n), {});
+          document.getElementById("newEmployee").value = "";
+          await loadEmployees();
+        });
+      }
 
-    const tdOut=document.createElement('td'); 
-    const outInput=document.createElement('input'); 
-    outInput.type='time'; 
-    outInput.step = 60; // force 24h
-    outInput.value = data[d]?.out || ''; 
-    tdOut.appendChild(outInput); 
-    tr.appendChild(tdOut);
+      async function saveWeekData() {
+        await wrapLoading(async () => {
+          const e = document.getElementById("adminEmployeeSelect").value;
+          const weekKey = document.getElementById("adminWeekSelect").value;
+          const b = document.getElementById("scheduleEditor");
+          const rows = Array.from(b.querySelectorAll("tr"));
+          let totalWeek = 0;
+          for (const row of rows) {
+            const day = row.children[0].textContent;
+            const inVal = row._sInput.value;
+            const outVal = row._oInput.value;
+            await updateSchedule(e, weekKey, day, "in", inVal);
+            await updateSchedule(e, weekKey, day, "out", outVal);
+            const hours = calculateHours(inVal, outVal);
+            row._tdHours.textContent = hours.toFixed(2);
+            totalWeek += hours;
+          }
+          document.getElementById("totalWeekHours").textContent =
+            totalWeek.toFixed(2);
+          renderEmployeeSchedule();
+          renderAllEmployeesSchedule();
+        });
+      }
 
-    const tdHours=document.createElement('td'); 
-    const hours = calculateHours(inInput.value, outInput.value); 
-    tdHours.textContent = hours.toFixed(2); 
-    tr.appendChild(tdHours);
+      // Event listeners
+      document.getElementById("adminButton").onclick = openAdminLogin;
+      document.getElementById("loginAdminBtn").onclick = () =>
+        wrapLoading(loginAdmin);
+      document.getElementById("logoutAdminBtn").onclick = logoutAdmin;
+      document.getElementById("addEmployeeBtn").onclick = addEmployee;
+      document.getElementById("saveWeekBtnTop").onclick = saveWeekData;
+      document.getElementById("saveWeekBtnBottom").onclick = saveWeekData;
+      document.getElementById("employeeWeekSelect").onchange = () => {
+        renderEmployeeSchedule();
+        renderAllEmployeesSchedule();
+      };
+      document.getElementById("adminWeekSelect").onchange =
+        renderScheduleEditor;
+      document.getElementById("adminEmployeeSelect").onchange =
+        renderScheduleEditor;
 
-    tr._sInput = inInput; 
-    tr._oInput = outInput; 
-    tr._tdHours = tdHours;
-    tbody.appendChild(tr);
-  });
-}
-
-async function renderEmployeeSchedule(){
-  const container=document.getElementById('employeeSchedule');
-  if(!state.selectedEmployee) { container.innerHTML=''; return; }
-  const weekKey=document.getElementById('employeeWeekSelect').value;
-  const docRef=doc(db,'employees',state.selectedEmployee,'weeks',weekKey);
-  const docSnap=await getDoc(docRef);
-  const data=docSnap.exists()?docSnap.data():{};
-  let html=`<table><thead><tr><th>Giorno</th><th>Entrata</th><th>Uscita</th><th>Ore</th></tr></thead><tbody>`;
-  let total=0;
-  DAYS.forEach(d=>{
-    const inVal=(data[d]&&data[d].in)?data[d].in:'';
-    const outVal=(data[d]&&data[d].out)?data[d].out:'';
-    const hours = calculateHours(inVal,outVal);
-    total += hours;
-    html+=`<tr><td>${d}</td><td>${inVal}</td><td>${outVal}</td><td>${hours.toFixed(2)}</td></tr>`;
-  });
-  html+=`</tbody><tfoot><tr><th colspan="3">Totale ore settimanali</th><th>${total.toFixed(2)}</th></tr></tfoot></table>`;
-  container.innerHTML=html;
-}
-
-async function renderAllEmployeesSchedule(){
-  const container=document.getElementById('allEmployeesSchedule');
-  const weekKey=document.getElementById('employeeWeekSelect').value;
-  container.innerHTML = '';
-  if(!weekKey || state.employees.length === 0) return;
-
-  let html = `<table><thead><tr><th>Dipendente</th>${DAYS.map(d=>`<th>${d}</th>`).join('')}<th>Totale Ore</th></tr></thead><tbody>`;
-  for(const emp of state.employees){
-    const docRef = doc(db,'employees',emp,'weeks',weekKey);
-    const docSnap = await getDoc(docRef);
-    const data = docSnap.exists()? docSnap.data() : {};
-    let totalHours = 0;
-    html += `<tr><td>${emp}</td>`;
-    for(const day of DAYS){
-      const inVal = data[day]?.in || '';
-      const outVal = data[day]?.out || '';
-      const hours = calculateHours(inVal, outVal);
-      totalHours += hours;
-      html += `<td>${inVal && outVal ? `${inVal}–${outVal} (${hours.toFixed(2)}h)` : '-'}</td>`;
-    }
-    html += `<td>${totalHours.toFixed(2)}</td>`;
-    html += '</tr>';
-  }
-  html += '</tbody></table>';
-  container.innerHTML = html;
-}
-
-function generateWeeks2026(){
-  const weeks=[];
-  let d=new Date('2026-01-05');
-  while(d.getFullYear()===2026){
-    const start=new Date(d);
-    const end=new Date(d); end.setDate(end.getDate()+6);
-    weeks.push({start:new Date(start),end:new Date(end),label:formatWeekLabel(start,end),key:start.toISOString().split('T')[0]+'_'+end.toISOString().split('T')[0]});
-    d.setDate(d.getDate()+7);
-  }
-  state.weeks=weeks;
-  const eSelect=document.getElementById('employeeWeekSelect');
-  const aSelect=document.getElementById('adminWeekSelect');
-  weeks.forEach(w=>{
-    const o1=document.createElement('option');o1.value=w.key;o1.textContent=w.label;eSelect.appendChild(o1);
-    const o2=document.createElement('option');o2.value=w.key;o2.textContent=w.label;aSelect.appendChild(o2);
-  });
-}
-
-async function loadEmployees(){
-  await wrapLoading(async ()=>{
-    const empSnap = await getDocs(collection(db,'employees'));
-    state.employees = [];
-    empSnap.forEach(doc => state.employees.push(doc.id));
-    renderEmployees();
-    renderAdminEmployeeSelect();
-    renderEmployeeSchedule();
-    renderAllEmployeesSchedule();
-  });
-}
-
-async function addEmployee(){
-  const n=document.getElementById('newEmployee').value.trim();
-  if(!n) return;
-  await wrapLoading(async ()=>{
-    await setDoc(doc(db,'employees',n), {});
-    document.getElementById('newEmployee').value='';
-    await loadEmployees();
-  });
-}
-
-async function saveWeekData(){
-  await wrapLoading(async ()=>{
-    const e=document.getElementById('adminEmployeeSelect').value;
-    const weekKey=document.getElementById('adminWeekSelect').value;
-    const b=document.getElementById('scheduleEditor');
-    const rows = Array.from(b.querySelectorAll('tr'));
-    let totalWeek=0;
-    for(const row of rows){
-      const day = row.children[0].textContent;
-      const inVal = row._sInput.value;
-      const outVal = row._oInput.value;
-      await updateSchedule(e,weekKey,day,'in',inVal);
-      await updateSchedule(e,weekKey,day,'out',outVal);
-      const hours = calculateHours(inVal,outVal);
-      row._tdHours.textContent = hours.toFixed(2);
-      totalWeek += hours;
-    }
-    document.getElementById('totalWeekHours').textContent=totalWeek.toFixed(2);
-    renderEmployeeSchedule();
-    renderAllEmployeesSchedule();
-  });
-}
-
-// Event listeners
-document.getElementById('adminButton').onclick=openAdminLogin;
-document.getElementById('loginAdminBtn').onclick=()=>wrapLoading(loginAdmin);
-document.getElementById('logoutAdminBtn').onclick=logoutAdmin;
-document.getElementById('addEmployeeBtn').onclick=addEmployee;
-document.getElementById('saveWeekBtnTop').onclick=saveWeekData;
-document.getElementById('saveWeekBtnBottom').onclick=saveWeekData;
-document.getElementById('employeeWeekSelect').onchange=()=>{
-  renderEmployeeSchedule();
-  renderAllEmployeesSchedule();
-};
-document.getElementById('adminWeekSelect').onchange=renderScheduleEditor;
-document.getElementById('adminEmployeeSelect').onchange=renderScheduleEditor;
-
-generateWeeks2026();
-loadEmployees();
-</script>
-</body>
+      generateWeeks2026();
+      loadEmployees();
+    </script>
+  </body>
 </html>
