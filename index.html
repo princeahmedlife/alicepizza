@@ -233,12 +233,32 @@ async function renderScheduleEditor(){
   DAYS.forEach(d=>{
     const tr=document.createElement('tr');
     const tdDay=document.createElement('td'); tdDay.textContent=d; tr.appendChild(tdDay);
-    const tdIn=document.createElement('td'); const inInput=document.createElement('input'); inInput.type='time';
-    inInput.value = data[d]?.in || ''; tdIn.appendChild(inInput); tr.appendChild(tdIn);
-    const tdOut=document.createElement('td'); const outInput=document.createElement('input'); outInput.type='time';
-    outInput.value = data[d]?.out || ''; tdOut.appendChild(outInput); tr.appendChild(tdOut);
-    const tdHours=document.createElement('td'); const hours = calculateHours(inInput.value, outInput.value); tdHours.textContent = hours.toFixed(2); tr.appendChild(tdHours);
-    tr._sInput = inInput; tr._oInput = outInput; tr._tdHours = tdHours;
+
+    // 24h time inputs
+    const tdIn=document.createElement('td'); 
+    const inInput=document.createElement('input'); 
+    inInput.type='time'; 
+    inInput.step = 60; // force 24h
+    inInput.value = data[d]?.in || ''; 
+    tdIn.appendChild(inInput); 
+    tr.appendChild(tdIn);
+
+    const tdOut=document.createElement('td'); 
+    const outInput=document.createElement('input'); 
+    outInput.type='time'; 
+    outInput.step = 60; // force 24h
+    outInput.value = data[d]?.out || ''; 
+    tdOut.appendChild(outInput); 
+    tr.appendChild(tdOut);
+
+    const tdHours=document.createElement('td'); 
+    const hours = calculateHours(inInput.value, outInput.value); 
+    tdHours.textContent = hours.toFixed(2); 
+    tr.appendChild(tdHours);
+
+    tr._sInput = inInput; 
+    tr._oInput = outInput; 
+    tr._tdHours = tdHours;
     tbody.appendChild(tr);
   });
 }
