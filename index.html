@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Alice Pizza – Turni</title>
+<title>Alici Pizza – Turni</title>
 <style>
 :root {
   --bg: linear-gradient(180deg,#0b1020,#020617);
@@ -23,6 +23,7 @@ header .by { font-size:.7rem; color:var(--muted); margin-top:.25rem; }
 button { background:var(--accent); border:0; border-radius:999px; padding:.6rem 1.1rem; font-weight:700; cursor:pointer; }
 button.secondary { background:var(--accent-soft); color:var(--accent); }
 button.danger { background:#ef4444; color:white; padding:.35rem .75rem; font-size:.75rem; margin-left:.5rem; }
+button.active-employee { background: var(--accent-soft); color: var(--accent); border: 2px solid var(--accent); }
 
 input, select { width:100%; padding:.6rem; border-radius:.75rem; border:1px solid rgba(255,255,255,.1); background:rgba(0,0,0,.3); color:var(--text); margin:.35rem 0; }
 input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor:pointer; }
@@ -41,20 +42,38 @@ tr { border-bottom:1px solid rgba(255,255,255,.08); }
 
 .loading { position:fixed; bottom:0; left:0; width:100%; background:var(--accent-soft); color:var(--accent); text-align:center; padding:.5rem; font-weight:700; display:none; }
 
-.bottom-table { margin-top:2rem; }
+.bottom-table {
+  margin-top:2rem;
+  overflow-x:auto; 
+  -webkit-overflow-scrolling: touch;
+  padding-bottom:1rem;
+}
+.bottom-table table {
+  min-width:800px; 
+}
+.bottom-table th, .bottom-table td {
+  white-space: nowrap; 
+}
 
 .save-btn-top { margin-bottom:1rem; }
-
 .admin-save-space { margin-top:1rem; }
 
-@media(max-width:600px){ header h1 { font-size:1.3rem; } table th, table td { font-size:.8rem; } }
+@media(max-width:600px){
+  header h1 { font-size:1.3rem; }
+  table th, table td { font-size:.8rem; }
+  .bottom-table table th, .bottom-table table td {
+    font-size:0.75rem;
+    padding:0.3rem;
+  }
+}
+
 nav { display:flex; justify-content:space-between; margin-bottom:1rem; }
 </style>
 </head>
 <body>
 <header>
-  <h1>Alice Pizza</h1>
-  <h2>Tito Labieno</h2>
+  <h1>Alici Pizza</h1>
+  <h2>Tito Labbieno</h2>
   <div class="by">made by Prince</div>
 </header>
 
@@ -163,12 +182,19 @@ async function loginAdmin(){
 }
 
 function renderEmployees(){
-  const container=document.getElementById('employeeButtons');
-  container.innerHTML='';
-  state.employees.forEach(e=>{
-    const btn=document.createElement('button');
-    btn.textContent=e;
-    btn.onclick=()=>{ state.selectedEmployee=e; renderEmployeeSchedule(); };
+  const container = document.getElementById('employeeButtons');
+  container.innerHTML = '';
+  state.employees.forEach(e => {
+    const btn = document.createElement('button');
+    btn.textContent = e;
+    if (state.selectedEmployee === e) {
+      btn.classList.add('active-employee');
+    }
+    btn.onclick = () => {
+      state.selectedEmployee = e;
+      renderEmployees();        
+      renderEmployeeSchedule(); 
+    };
     container.appendChild(btn);
   });
 }
