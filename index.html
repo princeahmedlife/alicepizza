@@ -38,7 +38,6 @@
                     </div>
                     <p class="text-xs text-slate-500 mt-0.5">Programmazione turni personale e gestione contratti</p>
                     <p class="text-xs text-slate-500 mt-0.5">Creato da Prince</p>
-
                 </div>
             </div>
 
@@ -57,6 +56,44 @@
                 </button>
             </div>
         </header>
+
+        <!-- Week Slider Navigation Header -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 no-print">
+            <div class="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
+                <button onclick="changeWeek(-1)" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1 transition">
+                    <i class="fa-solid fa-chevron-left"></i> Sett. Precedente
+                </button>
+                <button onclick="resetToCurrentWeek()" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition">
+                    Oggi / Settimana Corrente
+                </button>
+                <button onclick="changeWeek(1)" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1 transition">
+                    Sett. Successiva <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="text-center md:text-right">
+                <span id="currentWeekRange" class="text-sm md:text-base font-bold text-slate-900 block"></span>
+                <span class="text-[11px] text-slate-500 font-medium">Gl scorrevoli consentono di pianificare e consultare le settimane future</span>
+            </div>
+        </div>
+
+        <!-- Worker Quick Filter Option -->
+        <div class="bg-indigo-900 text-white p-4 rounded-2xl shadow-sm border border-indigo-950 flex flex-col md:flex-row items-center justify-between gap-3 no-print">
+            <div class="flex items-center gap-2.5">
+                <div class="p-2 bg-indigo-700 rounded-lg"><i class="fa-solid fa-user-gear text-sm"></i></div>
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-200">Vista Rapida Dipendente</h3>
+                    <p class="text-xs text-indigo-100">Seleziona il tuo nome per vedere unicamente i tuoi turni della settimana.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 w-full md:w-auto">
+                <select id="workerSelect" onchange="filterWorkerOnly()" class="w-full md:w-64 text-xs bg-indigo-800 text-white border border-indigo-600 rounded-xl px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-white">
+                    <option value="all">-- Mostra Tutti i Dipendenti --</option>
+                </select>
+                <button onclick="clearWorkerFilter()" class="px-3 py-2 bg-indigo-700 hover:bg-indigo-600 text-xs font-medium rounded-xl transition whitespace-nowrap">
+                    Mostra Tutti
+                </button>
+            </div>
+        </div>
 
         <!-- Stats Metrics Dashboard -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -84,7 +121,7 @@
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
                 <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><i class="fa-solid fa-circle-check text-lg"></i></div>
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">Turni Attivi Oggi</p>
+                    <p class="text-xs text-slate-500 font-medium">Turni Attivi Settimana</p>
                     <p id="statActiveShifts" class="text-lg font-bold text-slate-900">0</p>
                 </div>
             </div>
@@ -119,7 +156,7 @@
                 <button onclick="openEmployeeModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
                     <i class="fa-solid fa-user-plus"></i> Nuovo Dipendente
                 </button>
-                <button onclick="openConfigModal()" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition" title="Configura Firebase Cloud Sync">
+                <button onclick="openConfigModal()" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition" title="Configura Cloud Sync">
                     <i class="fa-solid fa-cloud text-sm"></i>
                 </button>
             </div>
@@ -130,17 +167,17 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
-                        <tr class="bg-slate-900 text-white uppercase text-[11px] font-semibold tracking-wider">
+                        <tr id="tableHeaderRow" class="bg-slate-900 text-white uppercase text-[11px] font-semibold tracking-wider">
                             <th class="py-3.5 px-4 min-w-[150px]">Dipendente</th>
                             <th class="py-3.5 px-3 text-center min-w-[90px]">Mansione</th>
                             <th class="py-3.5 px-3 text-center min-w-[100px]">Ore (Contr/Prog)</th>
-                            <th class="py-3.5 px-3 text-center min-w-[110px]">Lunedì 14</th>
-                            <th class="py-3.5 px-3 text-center min-w-[110px]">Martedì 15</th>
-                            <th class="py-3.5 px-3 text-center min-w-[110px]">Mercoledì 16</th>
-                            <th class="py-3.5 px-3 text-center min-w-[110px]">Giovedì 17</th>
-                            <th class="py-3.5 px-3 text-center min-w-[110px]">Venerdì 18</th>
-                            <th class="py-3.5 px-3 text-center min-w-[110px] bg-slate-800">Sabato 19</th>
-                            <th class="py-3.5 px-3 text-center min-w-[110px] bg-slate-800">Domenica 20</th>
+                            <th id="th-0" class="py-3.5 px-3 text-center min-w-[110px]">Lunedì</th>
+                            <th id="th-1" class="py-3.5 px-3 text-center min-w-[110px]">Martedì</th>
+                            <th id="th-2" class="py-3.5 px-3 text-center min-w-[110px]">Mercoledì</th>
+                            <th id="th-3" class="py-3.5 px-3 text-center min-w-[110px]">Giovedì</th>
+                            <th id="th-4" class="py-3.5 px-3 text-center min-w-[110px]">Venerdì</th>
+                            <th id="th-5" class="py-3.5 px-3 text-center min-w-[110px] bg-slate-800">Sabato</th>
+                            <th id="th-6" class="py-3.5 px-3 text-center min-w-[110px] bg-slate-800">Domenica</th>
                             <th id="adminColHeader" class="hidden py-3.5 px-3 text-center min-w-[70px] no-print">Azioni</th>
                         </tr>
                     </thead>
@@ -150,6 +187,9 @@
                 </table>
             </div>
         </div>
+
+        <!-- Mobile Card View for Individual Worker View -->
+        <div id="workerMobileView" class="hidden space-y-4"></div>
 
         <!-- Legend Footer -->
         <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-wrap gap-4 text-xs text-slate-600 no-print">
@@ -175,7 +215,6 @@
             <div>
                 <label class="text-xs font-semibold text-slate-600">Password Admin</label>
                 <input type="password" id="adminPasswordInput" placeholder="Inserisci password..." class="w-full mt-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
-                <p class="text-[10px] text-slate-400 mt-1">Password predefinita: <code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-600">853</code></p>
             </div>
             <div class="flex gap-2 pt-2">
                 <button onclick="toggleAuthModal()" class="w-1/2 py-2 text-xs bg-slate-100 hover:bg-slate-200 font-medium text-slate-700 rounded-xl">Annulla</button>
@@ -284,6 +323,8 @@
         let isAdmin = false;
         let adminPasscode = "Tuscolana853";
         let activeView = "weekly";
+        let weekOffset = 0; // 0 = Current Week, 1 = Next Week, -1 = Previous Week
+        let selectedWorkerId = "all";
         
         const ROLES = {
             cucina: { name: 'Cucina', badge: 'bg-sky-100 text-sky-800 border-sky-200' },
@@ -302,17 +343,18 @@
             { id: 'e6', name: 'ANNA', role: 'banco', contractHours: 30 }
         ];
 
+        // Store shifts with weekOffset parameter
         let shifts = JSON.parse(localStorage.getItem('planner_shifts')) || [
-            { id: 's1', employeeId: 'e1', dayIndex: 0, type: 'off', customText: 'Riposo' },
-            { id: 's2', employeeId: 'e1', dayIndex: 1, type: 'shift', startTime: '09:00', endTime: '15:45' },
-            { id: 's3', employeeId: 'e1', dayIndex: 2, type: 'shift', startTime: '09:00', endTime: '16:15' },
-            { id: 's4', employeeId: 'e1', dayIndex: 3, type: 'shift', startTime: '09:00', endTime: '16:00' },
-            { id: 's5', employeeId: 'e1', dayIndex: 4, type: 'shift', startTime: '15:00', endTime: '21:45' },
-            { id: 's6', employeeId: 'e1', dayIndex: 5, type: 'shift', startTime: '09:00', endTime: '15:00' },
-            { id: 's7', employeeId: 'e1', dayIndex: 6, type: 'shift', startTime: '09:00', endTime: '16:00' },
+            { id: 's1', employeeId: 'e1', weekOffset: 0, dayIndex: 0, type: 'off', customText: 'Riposo' },
+            { id: 's2', employeeId: 'e1', weekOffset: 0, dayIndex: 1, type: 'shift', startTime: '09:00', endTime: '15:45' },
+            { id: 's3', employeeId: 'e1', weekOffset: 0, dayIndex: 2, type: 'shift', startTime: '09:00', endTime: '16:15' },
+            { id: 's4', employeeId: 'e1', weekOffset: 0, dayIndex: 3, type: 'shift', startTime: '09:00', endTime: '16:00' },
+            { id: 's5', employeeId: 'e1', weekOffset: 0, dayIndex: 4, type: 'shift', startTime: '15:00', endTime: '21:45' },
+            { id: 's6', employeeId: 'e1', weekOffset: 0, dayIndex: 5, type: 'shift', startTime: '09:00', endTime: '15:00' },
+            { id: 's7', employeeId: 'e1', weekOffset: 0, dayIndex: 6, type: 'shift', startTime: '09:00', endTime: '16:00' },
             
-            { id: 's8', employeeId: 'e5', dayIndex: 0, type: 'shift', startTime: '10:45', endTime: '16:00', location: 'Cinecittà' },
-            { id: 's9', employeeId: 'e5', dayIndex: 4, type: 'split', startTime: '10:45', endTime: '14:00', startTime2: '18:30', endTime2: '21:45' }
+            { id: 's8', employeeId: 'e5', weekOffset: 0, dayIndex: 0, type: 'shift', startTime: '10:45', endTime: '16:00', location: 'Cinecittà' },
+            { id: 's9', employeeId: 'e5', weekOffset: 0, dayIndex: 4, type: 'split', startTime: '10:45', endTime: '14:00', startTime2: '18:30', endTime2: '21:45' }
         ];
 
         let activeShiftEdit = null;
@@ -320,12 +362,70 @@
 
         // Initialization
         window.onload = function() {
+            populateWorkerDropdown();
             renderSchedule();
         };
 
         function saveData() {
             localStorage.setItem('planner_employees', JSON.stringify(employees));
             localStorage.setItem('planner_shifts', JSON.stringify(shifts));
+            populateWorkerDropdown();
+            renderSchedule();
+        }
+
+        // Week Date Helpers
+        function getMonday(d) {
+            d = new Date(d);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        function getWeekDates(offset) {
+            const today = new Date();
+            const monday = getMonday(today);
+            monday.setDate(monday.getDate() + (offset * 7));
+            
+            const dates = [];
+            for (let i = 0; i < 7; i++) {
+                const nextDay = new Date(monday);
+                nextDay.setDate(monday.getDate() + i);
+                dates.push(nextDay);
+            }
+            return dates;
+        }
+
+        function changeWeek(direction) {
+            weekOffset += direction;
+            renderSchedule();
+        }
+
+        function resetToCurrentWeek() {
+            weekOffset = 0;
+            renderSchedule();
+        }
+
+        function populateWorkerDropdown() {
+            const dropdown = document.getElementById('workerSelect');
+            const currentVal = dropdown.value;
+            dropdown.innerHTML = '<option value="all">-- Mostra Tutti i Dipendenti --</option>';
+            employees.forEach(emp => {
+                const opt = document.createElement('option');
+                opt.value = emp.id;
+                opt.innerText = `${emp.name} (${ROLES[emp.role]?.name || emp.role})`;
+                dropdown.appendChild(opt);
+            });
+            dropdown.value = currentVal;
+        }
+
+        function filterWorkerOnly() {
+            selectedWorkerId = document.getElementById('workerSelect').value;
+            renderSchedule();
+        }
+
+        function clearWorkerFilter() {
+            selectedWorkerId = "all";
+            document.getElementById('workerSelect').value = "all";
             renderSchedule();
         }
 
@@ -350,7 +450,7 @@
 
         function getEmployeeHours(empId) {
             return shifts
-                .filter(s => s.employeeId === empId)
+                .filter(s => s.employeeId === empId && (s.weekOffset === weekOffset || (s.weekOffset === undefined && weekOffset === 0)))
                 .reduce((total, s) => total + calculateShiftHours(s), 0);
         }
 
@@ -360,10 +460,27 @@
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const roleFilter = document.getElementById('roleFilter').value;
 
-            const filteredEmps = employees.filter(e => {
+            // Calculate Week Dates
+            const weekDates = getWeekDates(weekOffset);
+            const startDateStr = `${weekDates[0].getDate()}/${weekDates[0].getMonth() + 1}`;
+            const endDateStr = `${weekDates[6].getDate()}/${weekDates[6].getMonth() + 1}/${weekDates[6].getFullYear()}`;
+            
+            document.getElementById('currentWeekRange').innerText = `Settimana: ${startDateStr} - ${endDateStr}`;
+
+            // Update Table Headers with Dates
+            weekDates.forEach((dateObj, idx) => {
+                const th = document.getElementById(`th-${idx}`);
+                if (th) {
+                    th.innerHTML = `${DAYS[idx]} <br><span class="text-[10px] font-normal opacity-80">${dateObj.getDate()}/${dateObj.getMonth() + 1}</span>`;
+                }
+            });
+
+            // Filter Employees
+            let filteredEmps = employees.filter(e => {
                 const matchesRole = roleFilter === 'all' || e.role === roleFilter;
                 const matchesSearch = e.name.toLowerCase().includes(searchTerm);
-                return matchesRole && matchesSearch;
+                const matchesWorkerSelect = selectedWorkerId === "all" || e.id === selectedWorkerId;
+                return matchesRole && matchesSearch && matchesWorkerSelect;
             });
 
             // Update Metrics
@@ -371,7 +488,6 @@
             
             let totalHours = 0;
             let totalOvertime = 0;
-            let activeToday = 0;
 
             filteredEmps.forEach(e => {
                 const scheduled = getEmployeeHours(e.id);
@@ -381,9 +497,13 @@
 
             document.getElementById('statTotalHours').innerText = `${totalHours.toFixed(1)} h`;
             document.getElementById('statOvertime').innerText = `${totalOvertime.toFixed(1)} h`;
-            document.getElementById('statActiveShifts').innerText = shifts.filter(s => s.type !== 'off').length;
+            
+            const activeShiftsCount = shifts.filter(s => 
+                (s.weekOffset === weekOffset || (s.weekOffset === undefined && weekOffset === 0)) && s.type !== 'off'
+            ).length;
+            document.getElementById('statActiveShifts').innerText = activeShiftsCount;
 
-            // Build Table Content
+            // Build Main Table Content
             tableBody.innerHTML = '';
 
             filteredEmps.forEach(emp => {
@@ -408,7 +528,7 @@
                         </div>
                     </td>
                     ${DAYS.map((_, dayIdx) => {
-                        const shift = shifts.find(s => s.employeeId === emp.id && s.dayIndex === dayIdx);
+                        const shift = shifts.find(s => s.employeeId === emp.id && s.dayIndex === dayIdx && (s.weekOffset === weekOffset || (s.weekOffset === undefined && weekOffset === 0)));
                         const isWeekend = dayIdx >= 5;
                         
                         let cellContent = `<span class="text-slate-400 italic">Riposo</span>`;
@@ -423,8 +543,7 @@
                             } else if (shift.type === 'shift') {
                                 cellContent = `
                                     <div class="bg-slate-100 border border-slate-200 text-slate-800 rounded-lg p-1.5">
-                                        <div class="font-semibold">${shift.startTime} - ${shift.endTime}</div>
-                                        ${shift.location ? `<div class="text-[9px] text-slate-500 font-normal">(${shift.location})</div>` : ''}
+                                        <div class="font-semibold">${shift.startTime} - ${shift.endTime}</div>${shift.location ? `<div class="text-[9px] text-slate-500 font-normal">(${shift.location})</div>` : ''}
                                     </div>`;
                             } else if (shift.type === 'off') {
                                 cellContent = `<span class="text-slate-400 italic">${shift.customText || 'Riposo'}</span>`;
@@ -432,7 +551,7 @@
                         }
 
                         return `
-                            <td onclick="handleCellClick('${emp.id}', ${dayIdx})" 
+                            <td onclick="handleCellClick('${emp.id}',${dayIdx})" 
                                 class="py-2 px-2 text-center cursor-pointer hover:bg-indigo-50/50 ${isWeekend ? 'bg-slate-50/50' : ''}">
                                 ${cellContent}
                             </td>`;
@@ -488,10 +607,11 @@
                 return;
             }
 
-            const existing = shifts.find(s => s.employeeId === empId && s.dayIndex === dayIdx);
+            const existing = shifts.find(s => s.employeeId === empId && s.dayIndex === dayIdx && (s.weekOffset === weekOffset || (s.weekOffset === undefined && weekOffset === 0)));
             activeShiftEdit = {
                 employeeId: empId,
                 dayIndex: dayIdx,
+                weekOffset: weekOffset,
                 type: existing?.type || 'shift',
                 startTime: existing?.startTime || '09:00',
                 endTime: existing?.endTime || '16:00',
@@ -521,60 +641,105 @@
             [b1, b2, b3].forEach(b => b.className = "py-2 text-xs font-medium rounded-xl border bg-slate-50 text-slate-600");
 
             if (type === 'shift') {
-                b1.className = "py-2 text-xs font-medium rounded-xl border bg-indigo-50 border-indigo-500 text-indigo-700";
+                b1.className = "py-2 text-xs font-medium rounded-xl border bg-indigo-50 border-indigo-500 text-indigo-700 font-bold";
                 document.getElementById('shiftTimeSection').classList.remove('hidden');
                 document.getElementById('splitShiftFields').classList.add('hidden');
                 document.getElementById('shiftOffSection').classList.add('hidden');
             } else if (type === 'split') {
-                b2.className = "py-2 text-xs font-medium rounded-xl border bg-indigo-50 border-indigo-500 text-indigo-700";
+                b2.className = "py-2 text-xs font-medium rounded-xl border bg-purple-50 border-purple-500 text-purple-700 font-bold";
                 document.getElementById('shiftTimeSection').classList.remove('hidden');
                 document.getElementById('splitShiftFields').classList.remove('hidden');
                 document.getElementById('shiftOffSection').classList.add('hidden');
-            } else {
-                b3.className = "py-2 text-xs font-medium rounded-xl border bg-indigo-50 border-indigo-500 text-indigo-700";
+            } else if (type === 'off') {
+                b3.className = "py-2 text-xs font-medium rounded-xl border bg-slate-200 border-slate-400 text-slate-800 font-bold";
                 document.getElementById('shiftTimeSection').classList.add('hidden');
                 document.getElementById('shiftOffSection').classList.remove('hidden');
             }
-        }
-
-        function saveShift() {
-            activeShiftEdit.startTime = document.getElementById('shiftStartTime').value;
-            activeShiftEdit.endTime = document.getElementById('shiftEndTime').value;
-            activeShiftEdit.startTime2 = document.getElementById('shiftStartTime2').value;
-            activeShiftEdit.endTime2 = document.getElementById('shiftEndTime2').value;
-            activeShiftEdit.location = document.getElementById('shiftLocation').value;
-            activeShiftEdit.customText = document.getElementById('shiftOffText').value;
-
-            shifts = shifts.filter(s => !(s.employeeId === activeShiftEdit.employeeId && s.dayIndex === activeShiftEdit.dayIndex));
-            shifts.push({ ...activeShiftEdit, id: 's_' + Date.now() });
-
-            closeShiftModal();
-            saveData();
-        }
-
-        function removeShift() {
-            shifts = shifts.filter(s => !(s.employeeId === activeShiftEdit.employeeId && s.dayIndex === activeShiftEdit.dayIndex));
-            closeShiftModal();
-            saveData();
         }
 
         function closeShiftModal() {
             document.getElementById('shiftModal').classList.add('hidden');
         }
 
-        // Employee Handlers
+        function saveShift() {
+            if (!activeShiftEdit) return;
+
+            shifts = shifts.filter(s => !(s.employeeId === activeShiftEdit.employeeId && s.dayIndex === activeShiftEdit.dayIndex && (s.weekOffset === activeShiftEdit.weekOffset || (s.weekOffset === undefined && activeShiftEdit.weekOffset === 0))));
+
+            const newShift = {
+                id: 's_' + Date.now(),
+                employeeId: activeShiftEdit.employeeId,
+                dayIndex: activeShiftEdit.dayIndex,
+                weekOffset: activeShiftEdit.weekOffset,
+                type: activeShiftEdit.type,
+                startTime: document.getElementById('shiftStartTime').value,
+                endTime: document.getElementById('shiftEndTime').value,
+                startTime2: document.getElementById('shiftStartTime2').value,
+                endTime2: document.getElementById('shiftEndTime2').value,
+                location: document.getElementById('shiftLocation').value,
+                customText: document.getElementById('shiftOffText').value
+            };
+
+            shifts.push(newShift);
+            closeShiftModal();
+            saveData();
+        }
+
+        function removeShift() {
+            if (!activeShiftEdit) return;
+            shifts = shifts.filter(s => !(s.employeeId === activeShiftEdit.employeeId && s.dayIndex === activeShiftEdit.dayIndex && (s.weekOffset === activeShiftEdit.weekOffset || (s.weekOffset === undefined && activeShiftEdit.weekOffset === 0))));
+            closeShiftModal();
+            saveData();
+        }
+
+        // Employee Management
         function openEmployeeModal() {
             activeEmployeeEditId = null;
             document.getElementById('empModalTitle').innerText = "Nuovo Dipendente";
             document.getElementById('empNameInput').value = '';
-            document.getElementById('empHoursInput').value = 40;
+            document.getElementById('empRoleInput').value = 'cucina';
+            document.getElementById('empHoursInput').value = '40';
             document.getElementById('employeeModal').classList.remove('hidden');
         }
 
-        function editEmployee(id) {
-            const emp = employees.find(e => e.id === id);
+        function closeEmployeeModal() {
+            document.getElementById('employeeModal').classList.add('hidden');
+        }
+
+        function saveEmployee() {
+            const name = document.getElementById('empNameInput').value.trim();
+            const role = document.getElementById('empRoleInput').value;
+            const hours = parseFloat(document.getElementById('empHoursInput').value) || 0;
+
+            if (!name) {
+                alert("Inserire il nome del dipendente.");
+                return;
+            }
+
+            if (activeEmployeeEditId) {
+                const emp = employees.find(e => e.id === activeEmployeeEditId);
+                if (emp) {
+                    emp.name = name;
+                    emp.role = role;
+                    emp.contractHours = hours;
+                }
+            } else {
+                employees.push({
+                    id: 'e_' + Date.now(),
+                    name: name,
+                    role: role,
+                    contractHours: hours
+                });
+            }
+
+            closeEmployeeModal();
+            saveData();
+        }
+
+        function editEmployee(empId) {
+            const emp = employees.find(e => e.id === empId);
             if (!emp) return;
-            activeEmployeeEditId = id;
+            activeEmployeeEditId = empId;
             document.getElementById('empModalTitle').innerText = "Modifica Dipendente";
             document.getElementById('empNameInput').value = emp.name;
             document.getElementById('empRoleInput').value = emp.role;
@@ -582,69 +747,47 @@
             document.getElementById('employeeModal').classList.remove('hidden');
         }
 
-        function saveEmployee() {
-            const name = document.getElementById('empNameInput').value.trim();
-            const role = document.getElementById('empRoleInput').value;
-            const hours = Number(document.getElementById('empHoursInput').value);
-
-            if (!name) return alert("Inserisci il nome del dipendente.");
-
-            if (activeEmployeeEditId) {
-                employees = employees.map(e => e.id === activeEmployeeEditId ? { ...e, name, role, contractHours: hours } : e);
-            } else {
-                employees.push({ id: 'e_' + Date.now(), name, role, contractHours: hours });
-            }
-
-            closeEmployeeModal();
-            saveData();
-        }
-
-        function deleteEmployee(id) {
-            if (confirm("Eliminare questo dipendente e i suoi turni?")) {
-                employees = employees.filter(e => e.id !== id);
-                shifts = shifts.filter(s => s.employeeId !== id);
+        function deleteEmployee(empId) {
+            if (confirm("Sei sicuro di voler eliminare questo dipendente e tutti i suoi turni?")) {
+                employees = employees.filter(e => e.id !== empId);
+                shifts = shifts.filter(s => s.employeeId !== empId);
                 saveData();
             }
         }
 
-        function closeEmployeeModal() {
-            document.getElementById('employeeModal').classList.add('hidden');
-        }
-
-        // Export and Sharing
-        function exportCSV() {
-            let csv = ['Dipendente,Mansione,Ore Contratto,Ore Programmate,' + DAYS.join(',')];
-            
-            employees.forEach(e => {
-                const roleName = ROLES[e.role]?.name || '';
-                const totalHours = getEmployeeHours(e.id).toFixed(1);
-                
-                const dayCols = DAYS.map((_, idx) => {
-                    const s = shifts.find(sh => sh.employeeId === e.id && sh.dayIndex === idx);
-                    if (!s || s.type === 'off') return `"${s?.customText || 'Riposo'}"`;
-                    if (s.type === 'split') return `"${s.startTime}-${s.endTime} / ${s.startTime2}-${s.endTime2}"`;
-                    return `"${s.startTime}-${s.endTime}${s.location ? ` (${s.location})` : ''}"`;
-                });
-
-                csv.push(`"${e.name}","${roleName}",${e.contractHours},${totalHours},${dayCols.join(',')}`);
-            });
-
-            const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'programmazione_turni.csv';
-            a.click();
+        function switchView(view) {
+            activeView = view;
+            if (view === 'monthly') {
+                alert("Vista Mensile attiva per consultazione generale.");
+            }
         }
 
         function shareLink() {
-            document.execCommand('copy');
-            alert("Link della pagina copiato negli appunti! Condividilo con il tuo team.");
+            navigator.clipboard.writeText(window.location.href);
+            alert("Link della pagina copiato negli appunti!");
         }
 
-        function switchView(mode) {
-            activeView = mode;
-            document.getElementById('viewWeeklyBtn').className = mode === 'weekly' ? 'px-3 py-1 font-semibold rounded-lg bg-white shadow-2xs text-slate-800' : 'px-3 py-1 font-semibold rounded-lg text-slate-600 hover:text-slate-900';
-            document.getElementById('viewMonthlyBtn').className = mode === 'monthly' ? 'px-3 py-1 font-semibold rounded-lg bg-white shadow-2xs text-slate-800' : 'px-3 py-1 font-semibold rounded-lg text-slate-600 hover:text-slate-900';
+        function exportCSV() {
+            let csv = 'Dipendente,Mansione,Ore Contratto,Lunedì,Martedì,Mercoledì,Giovedì,Venerdì,Sabato,Domenica\n';
+            employees.forEach(e => {
+                let row = [e.name, e.role, e.contractHours];
+                DAYS.forEach((_, dIdx) => {
+                    const s = shifts.find(sh => sh.employeeId === e.id && sh.dayIndex === dIdx && (sh.weekOffset === weekOffset || (sh.weekOffset === undefined && weekOffset === 0)));
+                    if (s) {
+                        if (s.type === 'shift') row.push(`${s.startTime}-${s.endTime}`);
+                        else if (s.type === 'split') row.push(`${s.startTime}-${s.endTime}/${s.startTime2}-${s.endTime2}`);
+                        else row.push(s.customText || 'Riposo');
+                    } else row.push('Riposo');
+                });
+                csv += row.join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `orari_turni_settimana_${weekOffset}.csv`);
+            a.click();
         }
     </script>
 </body>
