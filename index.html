@@ -1,622 +1,649 @@
 <!DOCTYPE html>
 <html lang="it">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Alice Pizza – Turni</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shift & Schedule Planner</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      :root {
-        --bg: linear-gradient(180deg, #0b1020, #020617);
-        --card: rgba(255, 255, 255, 0.06);
-        --accent: #38bdf8;
-        --accent-soft: rgba(56, 189, 248, 0.15);
-        --text: #e5e7eb;
-        --muted: #94a3b8;
-      }
-      * {
-        box-sizing: border-box;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont;
-      }
-      body {
-        margin: 0;
-        min-height: 100vh;
-        background: var(--bg);
-        color: var(--text);
-        position: relative;
-      }
-      header {
-        padding: 1.5rem 1rem 1rem;
-        text-align: center;
-      }
-      header h1 {
-        font-size: 1.6rem;
-        font-weight: 800;
-      }
-      header h2 {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--muted);
-        margin-top: 0.25rem;
-      }
-       .by {
-        font-size: 0.7rem;
-        color: var(--muted);
-        margin-top: 0.25rem;
-        text-align: center;
-      }
-
-      button {
-        background: var(--accent);
-        border: 0;
-        border-radius: 999px;
-        padding: 0.6rem 1.1rem;
-        font-weight: 700;
-        cursor: pointer;
-      }
-      button.secondary {
-        background: var(--accent-soft);
-        color: var(--accent);
-      }
-      button.danger {
-        background: #ef4444;
-        color: white;
-        padding: 0.35rem 0.75rem;
-        font-size: 0.75rem;
-        margin-left: 0.5rem;
-      }
-      button.active-employee {
-        background: var(--accent-soft);
-        color: var(--accent);
-        border: 2px solid var(--accent);
-      }
-
-      input,
-      select {
-        width: 100%;
-        padding: 0.6rem;
-        border-radius: 0.75rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: rgba(0, 0, 0, 0.3);
-        color: var(--text);
-        margin: 0.35rem 0;
-      }
-      input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(1);
-        cursor: pointer;
-      }
-
-      .container {
-        max-width: 900px;
-        margin: auto;
-        padding: 1rem;
-      }
-      .card {
-        background: var(--card);
-        backdrop-filter: blur(12px);
-        border-radius: 1.25rem;
-        padding: 1.25rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-      }
-      .hidden {
-        display: none;
-      }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 0.75rem;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 0.75rem;
-      }
-      th,
-      td {
-        padding: 0.5rem;
-        text-align: center;
-        font-size: 0.9rem;
-      }
-      th {
-        color: var(--muted);
-        font-weight: 600;
-      }
-      tr {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      }
-
-      .week-label {
-        text-align: center;
-        font-weight: 700;
-        margin-bottom: 0.75rem;
-      }
-
-      .loading {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background: var(--accent-soft);
-        color: var(--accent);
-        text-align: center;
-        padding: 0.5rem;
-        font-weight: 700;
-        display: none;
-      }
-
-      .bottom-table {
-        margin-top: 2rem;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 1rem;
-      }
-      .bottom-table table {
-        min-width: 800px;
-      }
-      .bottom-table th,
-      .bottom-table td {
-        white-space: nowrap;
-      }
-
-      .save-btn-top {
-        margin-bottom: 1rem;
-      }
-      .admin-save-space {
-        margin-top: 1rem;
-      }
-
-      @media (max-width: 600px) {
-        header h1 {
-          font-size: 1.3rem;
+        body { font-family: 'Inter', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0 !important; }
+            .print-border { border: 1px solid #cbd5e1 !important; box-shadow: none !important; }
         }
-        table th,
-        table td {
-          font-size: 0.8rem;
-        }
-        .bottom-table table th,
-        .bottom-table table td {
-          font-size: 0.75rem;
-          padding: 0.3rem;
-        }
-      }
-
-      nav {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 1rem;
-      }
     </style>
-  </head>
-  <body>
-    <header>
-      <h1>Alice Pizza</h1>
-      <h2>Tito labieno</h2>
-    </header>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
 
-    <div class="container">
-      <!-- Employee View -->
-      <div id="employeeView" class="card">
-        <div class="week-label">
-          <select id="employeeWeekSelect"></select>
+    <div class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+        
+        <!-- Header & Action Toolbar -->
+        <header class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4 print-border">
+            <div class="flex items-center gap-3">
+                <div class="p-3 bg-indigo-600 text-white rounded-xl shadow-md">
+                    <i class="fa-solid fa-calendar-days text-xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl md:text-2xl font-bold text-slate-900">Shift & Schedule Planner</h1>
+                        <span id="modeBadge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                            <i class="fa-solid fa-eye mr-1"></i> Modalità Visualizzazione
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">Programmazione turni personale e gestione contratti</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 no-print">
+                <button onclick="shareLink()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-xl transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-share-nodes"></i> Condividi
+                </button>
+                <button onclick="exportCSV()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-file-csv"></i> CSV
+                </button>
+                <button onclick="window.print()" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white font-medium text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-print"></i> Stampa
+                </button>
+                <button id="authBtn" onclick="toggleAuthModal()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-lock"></i> Admin Login
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Metrics Dashboard -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+                <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl"><i class="fa-solid fa-users text-lg"></i></div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">Totale Dipendenti</p>
+                    <p id="statTotalEmployees" class="text-lg font-bold text-slate-900">0</p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+                <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl"><i class="fa-solid fa-clock text-lg"></i></div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">Ore Programmate</p>
+                    <p id="statTotalHours" class="text-lg font-bold text-slate-900">0 h</p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+                <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl"><i class="fa-solid fa-user-clock text-lg"></i></div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">Straordinari</p>
+                    <p id="statOvertime" class="text-lg font-bold text-slate-900">0 h</p>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+                <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><i class="fa-solid fa-circle-check text-lg"></i></div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">Turni Attivi Oggi</p>
+                    <p id="statActiveShifts" class="text-lg font-bold text-slate-900">0</p>
+                </div>
+            </div>
         </div>
-        <div class="grid" id="employeeButtons"></div>
-        <div id="employeeSchedule"></div>
-        <div style="text-align: center; margin-top: 1rem">
-          <button class="secondary" id="adminButton">Admin</button>
-        </div>
-      </div>
 
-      <!-- Admin Login -->
-      <div id="adminLogin" class="card hidden">
-        <h3>Accesso Admin</h3>
-        <input
-          type="password"
-          id="adminPasswordInput"
-          placeholder="Password admin"
-        />
-        <button id="loginAdminBtn">Entra</button>
-      </div>
+        <!-- Filter & Control Panel -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 no-print">
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <!-- Search Input -->
+                <div class="relative flex-1 md:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchInput" oninput="renderSchedule()" placeholder="Cerca dipendente..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
 
-      <!-- Admin Dashboard -->
-      <div id="adminDashboard" class="card hidden">
-        <nav>
-          <button id="logoutAdminBtn" class="secondary">Esci</button>
-        </nav>
+                <!-- Role Filter -->
+                <select id="roleFilter" onchange="renderSchedule()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="all">Tutte le Mansioni</option>
+                    <option value="cucina">Cucina</option>
+                    <option value="banco">Banco</option>
+                    <option value="sala">Sala</option>
+                </select>
 
-        <button id="saveWeekBtnTop" class="secondary save-btn-top">
-          Salva settimana
-        </button>
+                <!-- View Switcher -->
+                <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+                    <button id="viewWeeklyBtn" onclick="switchView('weekly')" class="px-3 py-1 font-semibold rounded-lg bg-white shadow-2xs text-slate-800">Settimana</button>
+                    <button id="viewMonthlyBtn" onclick="switchView('monthly')" class="px-3 py-1 font-semibold rounded-lg text-slate-600 hover:text-slate-900">Mese</button>
+                </div>
+            </div>
 
-        <h4>Settimana turni</h4>
-        <div class="week-label">
-          <select id="adminWeekSelect"></select>
-        </div>
-        <select id="adminEmployeeSelect"></select>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Giorno</th>
-              <th>Entrata</th>
-              <th>Uscita</th>
-              <th>Ore</th>
-            </tr>
-          </thead>
-          <tbody id="scheduleEditor"></tbody>
-          <tfoot>
-            <tr>
-              <th colspan="3">Totale ore settimanali</th>
-              <th id="totalWeekHours">0</th>
-            </tr>
-          </tfoot>
-        </table>
-
-        <div class="admin-save-space">
-          <button id="saveWeekBtnBottom" class="secondary">
-            Salva settimana
-          </button>
+            <!-- Admin Controls -->
+            <div id="adminActionGroup" class="hidden flex items-center gap-2">
+                <button onclick="openEmployeeModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-plus"></i> Nuovo Dipendente
+                </button>
+                <button onclick="openConfigModal()" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition" title="Configura Firebase Cloud Sync">
+                    <i class="fa-solid fa-cloud text-sm"></i>
+                </button>
+            </div>
         </div>
 
-        <h4>Dipendenti</h4>
-        <input id="newEmployee" placeholder="Nome dipendente" />
-        <button id="addEmployeeBtn">Aggiungi</button>
-        <div id="adminEmployeeList"></div>
-      </div>
- <div class="by">Fatto da Prince 👑</div>
-      <!-- All Employees Schedule at bottom -->
-      <div class="card bottom-table">
-        <h3>Orario Dipendenti</h3>
-        <div id="allEmployeesSchedule"></div>
-      </div>
-     
+        <!-- Main Schedule Grid Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden print-border">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-900 text-white uppercase text-[11px] font-semibold tracking-wider">
+                            <th class="py-3.5 px-4 min-w-[150px]">Dipendente</th>
+                            <th class="py-3.5 px-3 text-center min-w-[90px]">Mansione</th>
+                            <th class="py-3.5 px-3 text-center min-w-[100px]">Ore (Contr/Prog)</th>
+                            <th class="py-3.5 px-3 text-center min-w-[110px]">Lunedì 14</th>
+                            <th class="py-3.5 px-3 text-center min-w-[110px]">Martedì 15</th>
+                            <th class="py-3.5 px-3 text-center min-w-[110px]">Mercoledì 16</th>
+                            <th class="py-3.5 px-3 text-center min-w-[110px]">Giovedì 17</th>
+                            <th class="py-3.5 px-3 text-center min-w-[110px]">Venerdì 18</th>
+                            <th class="py-3.5 px-3 text-center min-w-[110px] bg-slate-800">Sabato 19</th>
+                            <th class="py-3.5 px-3 text-center min-w-[110px] bg-slate-800">Domenica 20</th>
+                            <th id="adminColHeader" class="hidden py-3.5 px-3 text-center min-w-[70px] no-print">Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduleTableBody" class="divide-y divide-slate-200">
+                        <!-- Dynamic Rows Injected Here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Legend Footer -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-wrap gap-4 text-xs text-slate-600 no-print">
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-sky-500"></span> Cucina</div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500"></span> Banco</div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Sala</div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-purple-100 border border-purple-300"></span> Turno Spezzato</div>
+            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-slate-100 border border-slate-200"></span> Riposo</div>
+        </div>
+
     </div>
 
-    <div class="loading" id="loadingIndicator">Caricamento...</div>
+    <!-- Modals -->
 
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-      import {
-        getFirestore,
-        doc,
-        setDoc,
-        getDoc,
-        collection,
-        getDocs,
-      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js";
+    <!-- 1. Admin Authentication Modal -->
+    <div id="authModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-user-shield text-indigo-600 mr-2"></i>Accesso Amministratore</h3>
+                <button onclick="toggleAuthModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-slate-500">Inserisci la password per modificare orari, aggiungere dipendenti e gestire il personale.</p>
+            <div>
+                <label class="text-xs font-semibold text-slate-600">Password Admin</label>
+                <input type="password" id="adminPasswordInput" placeholder="Inserisci password..." class="w-full mt-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                <p class="text-[10px] text-slate-400 mt-1">Password predefinita: <code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-600">admin123</code></p>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="toggleAuthModal()" class="w-1/2 py-2 text-xs bg-slate-100 hover:bg-slate-200 font-medium text-slate-700 rounded-xl">Annulla</button>
+                <button onclick="loginAdmin()" class="w-1/2 py-2 text-xs bg-indigo-600 hover:bg-indigo-700 font-medium text-white rounded-xl shadow-sm">Accedi</button>
+            </div>
+        </div>
+    </div>
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyAZTgEhkDZy5PjfrtJP0PyhVaNj_DRdz8g",
-        authDomain: "alice-pizza-schedule.firebaseapp.com",
-        projectId: "alice-pizza-schedule",
-        storageBucket: "alice-pizza-schedule.firebasestorage.app",
-        messagingSenderId: "434408742284",
-        appId: "1:434408742284:web:9de2c40f3171946d808aa9",
-        measurementId: "G-D2N439W6V5",
-      };
+    <!-- 2. Shift Edit Modal -->
+    <div id="shiftModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 id="shiftModalTitle" class="text-base font-bold text-slate-900">Modifica Turno</h3>
+                <button onclick="closeShiftModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
 
-      const app = initializeApp(firebaseConfig);
-      getAnalytics(app);
-      const db = getFirestore(app);
+            <!-- Shift Type -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-slate-600">Tipologia Turno</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" onclick="setShiftType('shift')" id="btnTypeShift" class="py-2 text-xs font-medium rounded-xl border">Continuato</button>
+                    <button type="button" onclick="setShiftType('split')" id="btnTypeSplit" class="py-2 text-xs font-medium rounded-xl border">Spezzato</button>
+                    <button type="button" onclick="setShiftType('off')" id="btnTypeOff" class="py-2 text-xs font-medium rounded-xl border">Riposo / Assente</button>
+                </div>
+            </div>
 
-      const loadingEl = document.getElementById("loadingIndicator");
-      const DAYS = [
-        "Lunedì",
-        "Martedì",
-        "Mercoledì",
-        "Giovedì",
-        "Venerdì",
-        "Sabato",
-        "Domenica",
-      ];
-      let state = {
-        employees: [],
-        selectedEmployee: null,
-        activeWeek: null,
-        weeks: [],
-      };
+            <!-- Shift Inputs -->
+            <div id="shiftTimeSection" class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-medium text-slate-600">Ora Inizio</label>
+                        <input type="text" id="shiftStartTime" placeholder="09:00" class="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium text-slate-600">Ora Fine</label>
+                        <input type="text" id="shiftEndTime" placeholder="16:00" class="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+                    </div>
+                </div>
+                <div id="splitShiftFields" class="hidden grid grid-cols-2 gap-3 border-t pt-2">
+                    <div>
+                        <label class="text-xs font-medium text-slate-600">Ora Inizio 2</label>
+                        <input type="text" id="shiftStartTime2" placeholder="18:30" class="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium text-slate-600">Ora Fine 2</label>
+                        <input type="text" id="shiftEndTime2" placeholder="21:45" class="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-medium text-slate-600">Note / Sede (Opzionale)</label>
+                    <input type="text" id="shiftLocation" placeholder="es. Cinecittà" class="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+                </div>
+            </div>
 
-      function showLoading(show) {
-        loadingEl.style.display = show ? "block" : "none";
-      }
-      const showView = (id) =>
-        ["employeeView", "adminLogin", "adminDashboard"].forEach((v) =>
-          document.getElementById(v).classList.toggle("hidden", v !== id)
-        );
-      const formatWeekLabel = (f, t) => {
-        const o = { day: "numeric", month: "long" };
-        return `Settimana ${new Date(f).toLocaleDateString(
-          "it-IT",
-          o
-        )} – ${new Date(t).toLocaleDateString("it-IT", o)}`;
-      };
+            <div id="shiftOffSection" class="hidden">
+                <label class="text-xs font-medium text-slate-600">Motivo</label>
+                <input type="text" id="shiftOffText" placeholder="Riposo / Ferie / Permesso" class="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+            </div>
 
-      async function wrapLoading(fn) {
-        try {
-          showLoading(true);
-          await fn();
-        } finally {
-          showLoading(false);
+            <div class="flex items-center justify-between pt-3 border-t">
+                <button onclick="removeShift()" class="px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg">Rimuovi</button>
+                <div class="flex gap-2">
+                    <button onclick="closeShiftModal()" class="px-3 py-1.5 text-xs bg-slate-100 text-slate-700 rounded-lg">Annulla</button>
+                    <button onclick="saveShift()" class="px-4 py-1.5 text-xs bg-indigo-600 text-white rounded-lg">Salva Turno</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Employee Modal -->
+    <div id="employeeModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 id="empModalTitle" class="text-base font-bold text-slate-900">Nuovo Dipendente</h3>
+                <button onclick="closeEmployeeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-xs font-semibold text-slate-600">Nome e Cognome</label>
+                    <input type="text" id="empNameInput" placeholder="es. YOHANEL" class="w-full mt-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-600">Mansione</label>
+                    <select id="empRoleInput" class="w-full mt-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+                        <option value="cucina">Cucina</option>
+                        <option value="banco">Banco</option>
+                        <option value="sala">Sala</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-semibold text-slate-600">Ore Contratto Settimanali</label>
+                    <input type="number" id="empHoursInput" value="40" class="w-full mt-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-3 border-t">
+                <button onclick="closeEmployeeModal()" class="px-3 py-1.5 text-xs bg-slate-100 text-slate-700 rounded-lg">Annulla</button>
+                <button onclick="saveEmployee()" class="px-4 py-1.5 text-xs bg-indigo-600 text-white rounded-lg">Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let isAdmin = false;
+        let adminPasscode = "admin123";
+        let activeView = "weekly";
+        
+        const ROLES = {
+            cucina: { name: 'Cucina', badge: 'bg-sky-100 text-sky-800 border-sky-200' },
+            banco: { name: 'Banco', badge: 'bg-amber-100 text-amber-800 border-amber-200' },
+            sala: { name: 'Sala', badge: 'bg-emerald-100 text-emerald-800 border-emerald-200' }
+        };
+
+        const DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+
+        let employees = JSON.parse(localStorage.getItem('planner_employees')) || [
+            { id: 'e1', name: 'YOHANEL', role: 'cucina', contractHours: 40 },
+            { id: 'e2', name: 'PRINCE', role: 'cucina', contractHours: 30 },
+            { id: 'e3', name: 'Tito', role: 'cucina', contractHours: 40 },
+            { id: 'e4', name: 'ASIA', role: 'banco', contractHours: 40 },
+            { id: 'e5', name: 'ELISA', role: 'banco', contractHours: 24 },
+            { id: 'e6', name: 'ANNA', role: 'banco', contractHours: 30 }
+        ];
+
+        let shifts = JSON.parse(localStorage.getItem('planner_shifts')) || [
+            { id: 's1', employeeId: 'e1', dayIndex: 0, type: 'off', customText: 'Riposo' },
+            { id: 's2', employeeId: 'e1', dayIndex: 1, type: 'shift', startTime: '09:00', endTime: '15:45' },
+            { id: 's3', employeeId: 'e1', dayIndex: 2, type: 'shift', startTime: '09:00', endTime: '16:15' },
+            { id: 's4', employeeId: 'e1', dayIndex: 3, type: 'shift', startTime: '09:00', endTime: '16:00' },
+            { id: 's5', employeeId: 'e1', dayIndex: 4, type: 'shift', startTime: '15:00', endTime: '21:45' },
+            { id: 's6', employeeId: 'e1', dayIndex: 5, type: 'shift', startTime: '09:00', endTime: '15:00' },
+            { id: 's7', employeeId: 'e1', dayIndex: 6, type: 'shift', startTime: '09:00', endTime: '16:00' },
+            
+            { id: 's8', employeeId: 'e5', dayIndex: 0, type: 'shift', startTime: '10:45', endTime: '16:00', location: 'Cinecittà' },
+            { id: 's9', employeeId: 'e5', dayIndex: 4, type: 'split', startTime: '10:45', endTime: '14:00', startTime2: '18:30', endTime2: '21:45' }
+        ];
+
+        let activeShiftEdit = null;
+        let activeEmployeeEditId = null;
+
+        // Initialization
+        window.onload = function() {
+            renderSchedule();
+        };
+
+        function saveData() {
+            localStorage.setItem('planner_employees', JSON.stringify(employees));
+            localStorage.setItem('planner_shifts', JSON.stringify(shifts));
+            renderSchedule();
         }
-      }
 
-      function openAdminLogin() {
-        showView("adminLogin");
-      }
-      function logoutAdmin() {
-        showView("employeeView");
-        state.selectedEmployee = null;
-        renderEmployees();
-        renderAllEmployeesSchedule();
-      }
-
-      async function loginAdmin() {
-        const pw = document.getElementById("adminPasswordInput").value;
-        const docRef = doc(db, "admin", "password");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists() && docSnap.data().password === pw) {
-          showView("adminDashboard");
-          renderAdminEmployeeSelect();
-          await renderScheduleEditor();
-        } else {
-          alert("Password errata");
+        // Calculations & Helper Functions
+        function parseHours(timeStr) {
+            if (!timeStr) return 0;
+            const parts = timeStr.replace('.', ':').split(':');
+            const h = parseFloat(parts[0]) || 0;
+            const m = parseFloat(parts[1]) || 0;
+            return h + (m / 60);
         }
-      }
 
-      function renderEmployees() {
-        const container = document.getElementById("employeeButtons");
-        container.innerHTML = "";
-        state.employees.forEach((e) => {
-          const btn = document.createElement("button");
-          btn.textContent = e;
-          if (state.selectedEmployee === e) {
-            btn.classList.add("active-employee");
-          }
-          btn.onclick = () => {
-            state.selectedEmployee = e;
-            renderEmployees();
-            renderEmployeeSchedule();
-          };
-          container.appendChild(btn);
-        });
-      }
-
-      function renderAdminEmployeeSelect() {
-        const select = document.getElementById("adminEmployeeSelect");
-        select.innerHTML = "";
-        state.employees.forEach((e) => {
-          const opt = document.createElement("option");
-          opt.value = e;
-          opt.textContent = e;
-          select.appendChild(opt);
-        });
-      }
-
-      async function updateSchedule(employee, weekKey, day, type, value) {
-        const docRef = doc(db, "employees", employee, "weeks", weekKey);
-        const docSnap = await getDoc(docRef);
-        const data = docSnap.exists() ? docSnap.data() : {};
-        if (!data[day]) data[day] = {};
-        data[day][type] = value;
-        await setDoc(docRef, data);
-      }
-
-      function calculateHours(inVal, outVal) {
-        if (!inVal || !outVal) return 0;
-        const [inH, inM] = inVal.split(":").map(Number);
-        const [outH, outM] = outVal.split(":").map(Number);
-        const hours = outH + outM / 60 - (inH + inM / 60);
-        return hours > 0 ? hours : 0;
-      }
-
-      async function renderScheduleEditor() {
-        const e = document.getElementById("adminEmployeeSelect").value;
-        const weekKey = document.getElementById("adminWeekSelect").value;
-        const tbody = document.getElementById("scheduleEditor");
-        tbody.innerHTML = "";
-        const docRef = doc(db, "employees", e, "weeks", weekKey);
-        const docSnap = await getDoc(docRef);
-        const data = docSnap.exists() ? docSnap.data() : {};
-        DAYS.forEach((d) => {
-          const tr = document.createElement("tr");
-          const tdDay = document.createElement("td");
-          tdDay.textContent = d;
-          tr.appendChild(tdDay);
-
-          // 24h time inputs
-          const tdIn = document.createElement("td");
-          const inInput = document.createElement("input");
-          inInput.type = "time";
-          inInput.step = 60; // force 24h
-          inInput.value = data[d]?.in || "";
-          tdIn.appendChild(inInput);
-          tr.appendChild(tdIn);
-
-          const tdOut = document.createElement("td");
-          const outInput = document.createElement("input");
-          outInput.type = "time";
-          outInput.step = 60; // force 24h
-          outInput.value = data[d]?.out || "";
-          tdOut.appendChild(outInput);
-          tr.appendChild(tdOut);
-
-          const tdHours = document.createElement("td");
-          const hours = calculateHours(inInput.value, outInput.value);
-          tdHours.textContent = hours.toFixed(2);
-          tr.appendChild(tdHours);
-
-          tr._sInput = inInput;
-          tr._oInput = outInput;
-          tr._tdHours = tdHours;
-          tbody.appendChild(tr);
-        });
-      }
-
-      async function renderEmployeeSchedule() {
-        const container = document.getElementById("employeeSchedule");
-        if (!state.selectedEmployee) {
-          container.innerHTML = "";
-          return;
+        function calculateShiftHours(shift) {
+            if (!shift || shift.type === 'off') return 0;
+            if (shift.type === 'split') {
+                const h1 = Math.max(0, parseHours(shift.endTime) - parseHours(shift.startTime));
+                const h2 = Math.max(0, parseHours(shift.endTime2) - parseHours(shift.startTime2));
+                return h1 + h2;
+            }
+            return Math.max(0, parseHours(shift.endTime) - parseHours(shift.startTime));
         }
-        const weekKey = document.getElementById("employeeWeekSelect").value;
-        const docRef = doc(
-          db,
-          "employees",
-          state.selectedEmployee,
-          "weeks",
-          weekKey
-        );
-        const docSnap = await getDoc(docRef);
-        const data = docSnap.exists() ? docSnap.data() : {};
-        let html = `<table><thead><tr><th>Giorno</th><th>Entrata</th><th>Uscita</th><th>Ore</th></tr></thead><tbody>`;
-        let total = 0;
-        DAYS.forEach((d) => {
-          const inVal = data[d] && data[d].in ? data[d].in : "";
-          const outVal = data[d] && data[d].out ? data[d].out : "";
-          const hours = calculateHours(inVal, outVal);
-          total += hours;
-          html += `<tr><td>${d}</td><td>${inVal}</td><td>${outVal}</td><td>${hours.toFixed(
-            2
-          )}</td></tr>`;
-        });
-        html += `</tbody><tfoot><tr><th colspan="3">Totale ore settimanali</th><th>${total.toFixed(
-          2
-        )}</th></tr></tfoot></table>`;
-        container.innerHTML = html;
-      }
 
-      async function renderAllEmployeesSchedule() {
-        const container = document.getElementById("allEmployeesSchedule");
-        const weekKey = document.getElementById("employeeWeekSelect").value;
-        container.innerHTML = "";
-        if (!weekKey || state.employees.length === 0) return;
-
-        let html = `<table><thead><tr><th>Dipendente</th>${DAYS.map(
-          (d) => `<th>${d}</th>`
-        ).join("")}<th>Totale Ore</th></tr></thead><tbody>`;
-        for (const emp of state.employees) {
-          const docRef = doc(db, "employees", emp, "weeks", weekKey);
-          const docSnap = await getDoc(docRef);
-          const data = docSnap.exists() ? docSnap.data() : {};
-          let totalHours = 0;
-          html += `<tr><td>${emp}</td>`;
-          for (const day of DAYS) {
-            const inVal = data[day]?.in || "";
-            const outVal = data[day]?.out || "";
-            const hours = calculateHours(inVal, outVal);
-            totalHours += hours;
-            html += `<td>${
-              inVal && outVal
-                ? `${inVal}–${outVal} (${hours.toFixed(2)}h)`
-                : "-"
-            }</td>`;
-          }
-          html += `<td>${totalHours.toFixed(2)}</td>`;
-          html += "</tr>";
+        function getEmployeeHours(empId) {
+            return shifts
+                .filter(s => s.employeeId === empId)
+                .reduce((total, s) => total + calculateShiftHours(s), 0);
         }
-        html += "</tbody></table>";
-        container.innerHTML = html;
-      }
 
-      function generateWeeks2026() {
-        const weeks = [];
-        let d = new Date("2026-01-05");
-        while (d.getFullYear() === 2026) {
-          const start = new Date(d);
-          const end = new Date(d);
-          end.setDate(end.getDate() + 6);
-          weeks.push({
-            start: new Date(start),
-            end: new Date(end),
-            label: formatWeekLabel(start, end),
-            key:
-              start.toISOString().split("T")[0] +
-              "_" +
-              end.toISOString().split("T")[0],
-          });
-          d.setDate(d.getDate() + 7);
+        // Render Function
+        function renderSchedule() {
+            const tableBody = document.getElementById('scheduleTableBody');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const roleFilter = document.getElementById('roleFilter').value;
+
+            const filteredEmps = employees.filter(e => {
+                const matchesRole = roleFilter === 'all' || e.role === roleFilter;
+                const matchesSearch = e.name.toLowerCase().includes(searchTerm);
+                return matchesRole && matchesSearch;
+            });
+
+            // Update Metrics
+            document.getElementById('statTotalEmployees').innerText = filteredEmps.length;
+            
+            let totalHours = 0;
+            let totalOvertime = 0;
+            let activeToday = 0;
+
+            filteredEmps.forEach(e => {
+                const scheduled = getEmployeeHours(e.id);
+                totalHours += scheduled;
+                if (scheduled > e.contractHours) totalOvertime += (scheduled - e.contractHours);
+            });
+
+            document.getElementById('statTotalHours').innerText = `${totalHours.toFixed(1)} h`;
+            document.getElementById('statOvertime').innerText = `${totalOvertime.toFixed(1)} h`;
+            document.getElementById('statActiveShifts').innerText = shifts.filter(s => s.type !== 'off').length;
+
+            // Build Table Content
+            tableBody.innerHTML = '';
+
+            filteredEmps.forEach(emp => {
+                const roleObj = ROLES[emp.role] || ROLES.cucina;
+                const progHours = getEmployeeHours(emp.id);
+                const isOver = progHours > emp.contractHours;
+
+                let tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/80 transition-colors';
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 font-bold text-slate-900">${emp.name}</td>
+                    <td class="py-3 px-3 text-center">
+                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${roleObj.badge}">
+                            ${roleObj.name}
+                        </span>
+                    </td>
+                    <td class="py-3 px-3 text-center">
+                        <div class="font-bold text-slate-700">${emp.contractHours}h</div>
+                        <div class="text-[10px] font-semibold ${isOver ? 'text-amber-600' : 'text-emerald-600'}">
+                            (${progHours.toFixed(1)}h)
+                        </div>
+                    </td>
+                    ${DAYS.map((_, dayIdx) => {
+                        const shift = shifts.find(s => s.employeeId === emp.id && s.dayIndex === dayIdx);
+                        const isWeekend = dayIdx >= 5;
+                        
+                        let cellContent = `<span class="text-slate-400 italic">Riposo</span>`;
+                        if (shift) {
+                            if (shift.type === 'split') {
+                                cellContent = `
+                                    <div class="bg-purple-50 border border-purple-200 text-purple-900 rounded-lg p-1">
+                                        <div class="text-[9px] uppercase font-bold text-purple-600">Spezzato</div>
+                                        <div class="font-semibold">${shift.startTime}/${shift.endTime}</div>
+                                        <div class="font-semibold">${shift.startTime2}/${shift.endTime2}</div>
+                                    </div>`;
+                            } else if (shift.type === 'shift') {
+                                cellContent = `
+                                    <div class="bg-slate-100 border border-slate-200 text-slate-800 rounded-lg p-1.5">
+                                        <div class="font-semibold">${shift.startTime} - ${shift.endTime}</div>
+                                        ${shift.location ? `<div class="text-[9px] text-slate-500 font-normal">(${shift.location})</div>` : ''}
+                                    </div>`;
+                            } else if (shift.type === 'off') {
+                                cellContent = `<span class="text-slate-400 italic">${shift.customText || 'Riposo'}</span>`;
+                            }
+                        }
+
+                        return `
+                            <td onclick="handleCellClick('${emp.id}', ${dayIdx})" 
+                                class="py-2 px-2 text-center cursor-pointer hover:bg-indigo-50/50 ${isWeekend ? 'bg-slate-50/50' : ''}">
+                                ${cellContent}
+                            </td>`;
+                    }).join('')}
+                    ${isAdmin ? `
+                        <td class="py-3 px-3 text-center no-print">
+                            <button onclick="editEmployee('${emp.id}')" class="p-1 text-slate-400 hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteEmployee('${emp.id}')" class="p-1 text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
+                        </td>` : ''}
+                `;
+
+                tableBody.appendChild(tr);
+            });
         }
-        state.weeks = weeks;
-        const eSelect = document.getElementById("employeeWeekSelect");
-        const aSelect = document.getElementById("adminWeekSelect");
-        weeks.forEach((w) => {
-          const o1 = document.createElement("option");
-          o1.value = w.key;
-          o1.textContent = w.label;
-          eSelect.appendChild(o1);
-          const o2 = document.createElement("option");
-          o2.value = w.key;
-          o2.textContent = w.label;
-          aSelect.appendChild(o2);
-        });
-      }
 
-      async function loadEmployees() {
-        await wrapLoading(async () => {
-          const empSnap = await getDocs(collection(db, "employees"));
-          state.employees = [];
-          empSnap.forEach((doc) => state.employees.push(doc.id));
-          renderEmployees();
-          renderAdminEmployeeSelect();
-          renderEmployeeSchedule();
-          renderAllEmployeesSchedule();
-        });
-      }
+        // Authentication Handlers
+        function toggleAuthModal() {
+            if (isAdmin) {
+                isAdmin = false;
+                document.getElementById('modeBadge').className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200";
+                document.getElementById('modeBadge').innerHTML = `<i class="fa-solid fa-eye mr-1"></i> Modalità Visualizzazione`;
+                document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-lock"></i> Admin Login`;
+                document.getElementById('adminActionGroup').classList.add('hidden');
+                document.getElementById('adminColHeader').classList.add('hidden');
+                renderSchedule();
+            } else {
+                document.getElementById('authModal').classList.remove('hidden');
+            }
+        }
 
-      async function addEmployee() {
-        const n = document.getElementById("newEmployee").value.trim();
-        if (!n) return;
-        await wrapLoading(async () => {
-          await setDoc(doc(db, "employees", n), {});
-          document.getElementById("newEmployee").value = "";
-          await loadEmployees();
-        });
-      }
+        function loginAdmin() {
+            const val = document.getElementById('adminPasswordInput').value;
+            if (val === adminPasscode) {
+                isAdmin = true;
+                document.getElementById('authModal').classList.add('hidden');
+                document.getElementById('adminPasswordInput').value = '';
+                
+                document.getElementById('modeBadge').className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200";
+                document.getElementById('modeBadge').innerHTML = `<i class="fa-solid fa-shield-halved mr-1"></i> Modalità Admin`;
+                document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> Logout`;
+                document.getElementById('adminActionGroup').classList.remove('hidden');
+                document.getElementById('adminColHeader').classList.remove('hidden');
+                renderSchedule();
+            } else {
+                alert("Password errata. Riprova.");
+            }
+        }
 
-      async function saveWeekData() {
-        await wrapLoading(async () => {
-          const e = document.getElementById("adminEmployeeSelect").value;
-          const weekKey = document.getElementById("adminWeekSelect").value;
-          const b = document.getElementById("scheduleEditor");
-          const rows = Array.from(b.querySelectorAll("tr"));
-          let totalWeek = 0;
-          for (const row of rows) {
-            const day = row.children[0].textContent;
-            const inVal = row._sInput.value;
-            const outVal = row._oInput.value;
-            await updateSchedule(e, weekKey, day, "in", inVal);
-            await updateSchedule(e, weekKey, day, "out", outVal);
-            const hours = calculateHours(inVal, outVal);
-            row._tdHours.textContent = hours.toFixed(2);
-            totalWeek += hours;
-          }
-          document.getElementById("totalWeekHours").textContent =
-            totalWeek.toFixed(2);
-          renderEmployeeSchedule();
-          renderAllEmployeesSchedule();
-        });
-      }
+        // Shift Handlers
+        function handleCellClick(empId, dayIdx) {
+            if (!isAdmin) {
+                alert("Per modificare i turni è necessario accedere come Amministratore (Admin Login).");
+                return;
+            }
 
-      // Event listeners
-      document.getElementById("adminButton").onclick = openAdminLogin;
-      document.getElementById("loginAdminBtn").onclick = () =>
-        wrapLoading(loginAdmin);
-      document.getElementById("logoutAdminBtn").onclick = logoutAdmin;
-      document.getElementById("addEmployeeBtn").onclick = addEmployee;
-      document.getElementById("saveWeekBtnTop").onclick = saveWeekData;
-      document.getElementById("saveWeekBtnBottom").onclick = saveWeekData;
-      document.getElementById("employeeWeekSelect").onchange = () => {
-        renderEmployeeSchedule();
-        renderAllEmployeesSchedule();
-      };
-      document.getElementById("adminWeekSelect").onchange =
-        renderScheduleEditor;
-      document.getElementById("adminEmployeeSelect").onchange =
-        renderScheduleEditor;
+            const existing = shifts.find(s => s.employeeId === empId && s.dayIndex === dayIdx);
+            activeShiftEdit = {
+                employeeId: empId,
+                dayIndex: dayIdx,
+                type: existing?.type || 'shift',
+                startTime: existing?.startTime || '09:00',
+                endTime: existing?.endTime || '16:00',
+                startTime2: existing?.startTime2 || '18:30',
+                endTime2: existing?.endTime2 || '21:45',
+                location: existing?.location || '',
+                customText: existing?.customText || ''
+            };
 
-      generateWeeks2026();
-      loadEmployees();
+            setShiftType(activeShiftEdit.type);
+            document.getElementById('shiftStartTime').value = activeShiftEdit.startTime;
+            document.getElementById('shiftEndTime').value = activeShiftEdit.endTime;
+            document.getElementById('shiftStartTime2').value = activeShiftEdit.startTime2;
+            document.getElementById('shiftEndTime2').value = activeShiftEdit.endTime2;
+            document.getElementById('shiftLocation').value = activeShiftEdit.location;
+            document.getElementById('shiftOffText').value = activeShiftEdit.customText;
+
+            document.getElementById('shiftModal').classList.remove('hidden');
+        }
+
+        function setShiftType(type) {
+            activeShiftEdit.type = type;
+            const b1 = document.getElementById('btnTypeShift');
+            const b2 = document.getElementById('btnTypeSplit');
+            const b3 = document.getElementById('btnTypeOff');
+
+            [b1, b2, b3].forEach(b => b.className = "py-2 text-xs font-medium rounded-xl border bg-slate-50 text-slate-600");
+
+            if (type === 'shift') {
+                b1.className = "py-2 text-xs font-medium rounded-xl border bg-indigo-50 border-indigo-500 text-indigo-700";
+                document.getElementById('shiftTimeSection').classList.remove('hidden');
+                document.getElementById('splitShiftFields').classList.add('hidden');
+                document.getElementById('shiftOffSection').classList.add('hidden');
+            } else if (type === 'split') {
+                b2.className = "py-2 text-xs font-medium rounded-xl border bg-indigo-50 border-indigo-500 text-indigo-700";
+                document.getElementById('shiftTimeSection').classList.remove('hidden');
+                document.getElementById('splitShiftFields').classList.remove('hidden');
+                document.getElementById('shiftOffSection').classList.add('hidden');
+            } else {
+                b3.className = "py-2 text-xs font-medium rounded-xl border bg-indigo-50 border-indigo-500 text-indigo-700";
+                document.getElementById('shiftTimeSection').classList.add('hidden');
+                document.getElementById('shiftOffSection').classList.remove('hidden');
+            }
+        }
+
+        function saveShift() {
+            activeShiftEdit.startTime = document.getElementById('shiftStartTime').value;
+            activeShiftEdit.endTime = document.getElementById('shiftEndTime').value;
+            activeShiftEdit.startTime2 = document.getElementById('shiftStartTime2').value;
+            activeShiftEdit.endTime2 = document.getElementById('shiftEndTime2').value;
+            activeShiftEdit.location = document.getElementById('shiftLocation').value;
+            activeShiftEdit.customText = document.getElementById('shiftOffText').value;
+
+            shifts = shifts.filter(s => !(s.employeeId === activeShiftEdit.employeeId && s.dayIndex === activeShiftEdit.dayIndex));
+            shifts.push({ ...activeShiftEdit, id: 's_' + Date.now() });
+
+            closeShiftModal();
+            saveData();
+        }
+
+        function removeShift() {
+            shifts = shifts.filter(s => !(s.employeeId === activeShiftEdit.employeeId && s.dayIndex === activeShiftEdit.dayIndex));
+            closeShiftModal();
+            saveData();
+        }
+
+        function closeShiftModal() {
+            document.getElementById('shiftModal').classList.add('hidden');
+        }
+
+        // Employee Handlers
+        function openEmployeeModal() {
+            activeEmployeeEditId = null;
+            document.getElementById('empModalTitle').innerText = "Nuovo Dipendente";
+            document.getElementById('empNameInput').value = '';
+            document.getElementById('empHoursInput').value = 40;
+            document.getElementById('employeeModal').classList.remove('hidden');
+        }
+
+        function editEmployee(id) {
+            const emp = employees.find(e => e.id === id);
+            if (!emp) return;
+            activeEmployeeEditId = id;
+            document.getElementById('empModalTitle').innerText = "Modifica Dipendente";
+            document.getElementById('empNameInput').value = emp.name;
+            document.getElementById('empRoleInput').value = emp.role;
+            document.getElementById('empHoursInput').value = emp.contractHours;
+            document.getElementById('employeeModal').classList.remove('hidden');
+        }
+
+        function saveEmployee() {
+            const name = document.getElementById('empNameInput').value.trim();
+            const role = document.getElementById('empRoleInput').value;
+            const hours = Number(document.getElementById('empHoursInput').value);
+
+            if (!name) return alert("Inserisci il nome del dipendente.");
+
+            if (activeEmployeeEditId) {
+                employees = employees.map(e => e.id === activeEmployeeEditId ? { ...e, name, role, contractHours: hours } : e);
+            } else {
+                employees.push({ id: 'e_' + Date.now(), name, role, contractHours: hours });
+            }
+
+            closeEmployeeModal();
+            saveData();
+        }
+
+        function deleteEmployee(id) {
+            if (confirm("Eliminare questo dipendente e i suoi turni?")) {
+                employees = employees.filter(e => e.id !== id);
+                shifts = shifts.filter(s => s.employeeId !== id);
+                saveData();
+            }
+        }
+
+        function closeEmployeeModal() {
+            document.getElementById('employeeModal').classList.add('hidden');
+        }
+
+        // Export and Sharing
+        function exportCSV() {
+            let csv = ['Dipendente,Mansione,Ore Contratto,Ore Programmate,' + DAYS.join(',')];
+            
+            employees.forEach(e => {
+                const roleName = ROLES[e.role]?.name || '';
+                const totalHours = getEmployeeHours(e.id).toFixed(1);
+                
+                const dayCols = DAYS.map((_, idx) => {
+                    const s = shifts.find(sh => sh.employeeId === e.id && sh.dayIndex === idx);
+                    if (!s || s.type === 'off') return `"${s?.customText || 'Riposo'}"`;
+                    if (s.type === 'split') return `"${s.startTime}-${s.endTime} / ${s.startTime2}-${s.endTime2}"`;
+                    return `"${s.startTime}-${s.endTime}${s.location ? ` (${s.location})` : ''}"`;
+                });
+
+                csv.push(`"${e.name}","${roleName}",${e.contractHours},${totalHours},${dayCols.join(',')}`);
+            });
+
+            const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'programmazione_turni.csv';
+            a.click();
+        }
+
+        function shareLink() {
+            document.execCommand('copy');
+            alert("Link della pagina copiato negli appunti! Condividilo con il tuo team.");
+        }
+
+        function switchView(mode) {
+            activeView = mode;
+            document.getElementById('viewWeeklyBtn').className = mode === 'weekly' ? 'px-3 py-1 font-semibold rounded-lg bg-white shadow-2xs text-slate-800' : 'px-3 py-1 font-semibold rounded-lg text-slate-600 hover:text-slate-900';
+            document.getElementById('viewMonthlyBtn').className = mode === 'monthly' ? 'px-3 py-1 font-semibold rounded-lg bg-white shadow-2xs text-slate-800' : 'px-3 py-1 font-semibold rounded-lg text-slate-600 hover:text-slate-900';
+        }
     </script>
-  </body>
+</body>
 </html>
