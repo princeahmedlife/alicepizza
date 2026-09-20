@@ -3,854 +3,1167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shift & Schedule Planner</title>
+    <title>Shift & Schedule Planner - Gestione Turni</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* Custom scrollbars */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* Print styling */
         @media print {
-            .no-print { display: none !important; }
-            body { background: white !important; padding: 0 !important; }
-            .print-border { border: 1px solid #cbd5e1 !important; box-shadow: none !important; }
+            body { background: white !important; color: black !important; }
+            .no-print, header, #sidebarDrawer, #toast { display: none !important; }
+            #printable-schedule { border: none !important; box-shadow: none !important; padding: 0 !important; }
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen relative">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
 
-    <!-- Global Drawer / Sidebar Overlay -->
-    <div id="sidebarOverlay" onclick="closeSidebar()" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 transition-opacity"></div>
-
-    <!-- Slide-out Drawer Sidebar (Desktop & Mobile) -->
-    <aside id="sidebar" class="fixed top-0 left-0 bottom-0 w-80 bg-slate-900 text-white z-50 transform -translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between shadow-2xl">
-        <div class="space-y-6">
-            <!-- Sidebar Header -->
-            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="p-2.5 bg-indigo-600 rounded-xl shadow-md">
-                        <i class="fa-solid fa-calendar-days text-xl text-white"></i>
+    <!-- Top Header Navigation -->
+    <header class="bg-white border-b border-slate-200/80 sticky top-0 z-30 no-print shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            
+            <!-- Branding & Sidebar Toggle -->
+            <div class="flex items-center space-x-3 shrink-0">
+                <button onclick="toggleSidebarDrawer()" class="text-slate-600 hover:text-indigo-600 p-2 rounded-xl bg-slate-100 hover:bg-indigo-50 transition-colors focus:outline-none" title="Apri Menu">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <div class="flex items-center space-x-2.5">
+                    <div class="bg-indigo-600 text-white p-2 rounded-xl shadow-md shadow-indigo-200 flex items-center justify-center">
+                        <i class="fa-solid fa-calendar-days text-base"></i>
                     </div>
                     <div>
-                        <h2 class="font-bold text-base text-white">Shift Planner</h2>
-                        <p class="text-xs text-slate-400">Menù e Controllo</p>
+                        <h1 class="font-bold text-slate-900 text-base sm:text-lg leading-tight tracking-tight">Shift Planner</h1>
+                        <p class="text-[11px] text-slate-500 hidden sm:block">Programmazione Turni Personale</p>
                     </div>
                 </div>
-                <button onclick="closeSidebar()" class="text-slate-400 hover:text-white text-lg p-1 transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
             </div>
 
-            <!-- Mode Indicator inside Sidebar -->
-            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 flex items-center justify-between">
-                <span class="text-xs text-slate-400">Stato Accesso:</span>
-                <span id="sidebarModeBadge" class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-700 text-slate-300 border border-slate-600">
-                    <i class="fa-solid fa-eye mr-1"></i> Ospite
-                </span>
-            </div>
+            <!-- Public Worker Filter Control -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <div class="relative flex items-center">
+                    <i class="fa-solid fa-user-tag absolute left-3 text-slate-400 text-xs"></i>
+                    <select id="workerFilter" onchange="handleWorkerChange()" class="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-8 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all cursor-pointer shadow-sm appearance-none">
+                        <option value="ALL">Tutti i dipendenti</option>
+                        <!-- Dynamic Options populated by JS -->
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-2.5 text-slate-400 text-[10px] pointer-events-none"></i>
+                </div>
 
-            <!-- Quick Actions -->
-            <div class="space-y-2">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Strumenti & Azioni</p>
-                <button onclick="shareLink(); closeSidebar();" class="w-full text-left px-3.5 py-2.5 bg-slate-800/60 hover:bg-slate-800 text-xs text-slate-200 rounded-xl transition flex items-center gap-3 border border-slate-800">
-                    <i class="fa-solid fa-share-nodes text-indigo-400"></i> Condividi Orari
-                </button>
-                <button onclick="exportCSV(); closeSidebar();" class="w-full text-left px-3.5 py-2.5 bg-slate-800/60 hover:bg-slate-800 text-xs text-slate-200 rounded-xl transition flex items-center gap-3 border border-slate-800">
-                    <i class="fa-solid fa-file-csv text-emerald-400"></i> Esporta CSV
-                </button>
-                <button onclick="window.print(); closeSidebar();" class="w-full text-left px-3.5 py-2.5 bg-slate-800/60 hover:bg-slate-800 text-xs text-slate-200 rounded-xl transition flex items-center gap-3 border border-slate-800">
-                    <i class="fa-solid fa-print text-amber-400"></i> Stampa Tabella
-                </button>
-            </div>
+                <!-- Remember Device Toggle -->
+                <label class="hidden md:inline-flex items-center space-x-1.5 text-xs text-slate-600 cursor-pointer bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors shadow-sm" title="Salva questa scelta sul browser">
+                    <input type="checkbox" id="rememberDeviceWorker" onchange="toggleRememberWorker()" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5">
+                    <span class="font-medium text-[11px]">Ricorda</span>
+                </label>
 
-            <!-- Admin Authentication Controls in Sidebar -->
-            <div class="pt-4 border-t border-slate-800 space-y-2">
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Area Amministratore</p>
-                <button id="sidebarAuthBtn" onclick="toggleAuthModal(); closeSidebar();" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-md">
-                    <i class="fa-solid fa-lock"></i> Admin Login
-                </button>
-            </div>
-        </div>
-
-        <div class="text-xs text-slate-500 border-t border-slate-800 pt-4">
-            <p class="font-medium text-slate-400">Shift & Schedule Planner</p>
-            <p class="text-[10px] text-slate-600">Creato da Prince</p>
-        </div>
-    </aside>
-
-    <div class="max-w-7xl mx-auto p-3 md:p-6 space-y-4">
-
-        <!-- Top Navigation Bar (Always Visible for All Screens) -->
-        <div class="bg-slate-900 text-white p-3 md:p-4 rounded-2xl shadow-md flex items-center justify-between no-print">
-            <div class="flex items-center gap-3">
-                <button onclick="openSidebar()" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl transition flex items-center gap-2 border border-slate-700 shadow-sm">
-                    <i class="fa-solid fa-bars text-base"></i>
-                    <span class="text-xs font-semibold hidden sm:inline">Menù</span>
-                </button>
-                <div>
-                    <span class="font-bold text-sm md:text-base block">Shift Planner</span>
-                    <span class="text-[10px] md:text-xs text-slate-400 block">Gestione Turni Personale</span>
+                <!-- Admin Active Badge -->
+                <div id="adminBadgeHeader" class="hidden flex items-center space-x-1.5 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl text-emerald-800 text-xs font-bold shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="hidden sm:inline">Admin</span>
                 </div>
             </div>
+        </div>
+    </header>
+
+    <!-- Slide-Out Sidebar Drawer (Public + Admin Actions) -->
+    <div id="sidebarDrawer" class="fixed inset-0 z-50 hidden no-print">
+        <div onclick="toggleSidebarDrawer()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+        <div class="fixed inset-y-0 left-0 max-w-xs w-full bg-slate-900 text-slate-300 p-6 flex flex-col justify-between shadow-2xl z-50 transform transition-transform duration-300">
             
-            <div class="flex items-center gap-2">
-                <div id="topModeBadge" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1.5">
-                    <i class="fa-solid fa-eye"></i> <span class="hidden sm:inline">Modalità</span> Ospite
-                </div>
-            </div>
-        </div>
-
-        <!-- Header & Action Toolbar (ADMIN ONLY) -->
-        <header id="adminHeader" class="hidden bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4 print-border">
-            <div class="flex items-center gap-3">
-                <div class="p-3 bg-indigo-600 text-white rounded-xl shadow-md">
-                    <i class="fa-solid fa-calendar-days text-xl"></i>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-xl md:text-2xl font-bold text-slate-900">Shift & Schedule Planner</h1>
-                        <span id="modeBadge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-                            <i class="fa-solid fa-eye mr-1"></i> Modalità Visualizzazione
-                        </span>
+            <div class="space-y-6">
+                <!-- Drawer Header -->
+                <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-indigo-600 text-white p-2 rounded-xl shadow-md">
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-white text-base">Menu Opzioni</h2>
+                            <p class="text-[10px] text-slate-400">Strumenti & Admin</p>
+                        </div>
                     </div>
-                    <p class="text-xs text-slate-500 mt-0.5">Programmazione turni personale e gestione contratti</p>
-                    <p class="text-xs text-slate-500 mt-0.5">Creato da Prince</p>
+                    <button onclick="toggleSidebarDrawer()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Admin Status Card -->
+                <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/60 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-medium text-slate-400">Stato Accesso:</span>
+                        <span id="drawerRoleBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-700 text-slate-300 uppercase tracking-wider">Ospite</span>
+                    </div>
+                    <button id="drawerAdminAuthBtn" onclick="toggleAdminModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-lock text-xs"></i>
+                        <span id="drawerAdminBtnText">Accedi come Admin</span>
+                    </button>
+                </div>
+
+                <!-- Admin Extra Actions Section (Revealed when Admin) -->
+                <div id="drawerAdminControls" class="hidden space-y-2 pt-2 border-t border-slate-800">
+                    <p class="text-[11px] font-extrabold uppercase tracking-wider text-indigo-400 mb-2">Gestione Amministrativa</p>
+                    <button onclick="openManageWorkersModal()" class="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold text-left transition-all flex items-center space-x-2.5 border border-slate-700/50">
+                        <i class="fa-solid fa-users-gear text-indigo-400 w-4 text-center"></i>
+                        <span>Gestisci Dipendenti</span>
+                    </button>
+                    <button onclick="printSchedule()" class="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold text-left transition-all flex items-center space-x-2.5 border border-slate-700/50">
+                        <i class="fa-solid fa-print text-slate-400 w-4 text-center"></i>
+                        <span>Stampa Tabella Turni</span>
+                    </button>
+                    <button onclick="exportToCSV()" class="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold text-left transition-all flex items-center space-x-2.5 border border-slate-700/50">
+                        <i class="fa-solid fa-file-csv text-emerald-400 w-4 text-center"></i>
+                        <span>Esporta Tabella (CSV)</span>
+                    </button>
+                    <button onclick="shareSchedule()" class="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold text-left transition-all flex items-center space-x-2.5 border border-slate-700/50">
+                        <i class="fa-solid fa-share-nodes text-sky-400 w-4 text-center"></i>
+                        <span>Copia Link Condivisione</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2 no-print">
-                <button onclick="shareLink()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-xl transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-share-nodes"></i> Condividi
-                </button>
-                <button onclick="exportCSV()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-file-csv"></i> CSV
-                </button>
-                <button onclick="window.print()" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white font-medium text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-print"></i> Stampa
-                </button>
-                <button id="authBtn" onclick="toggleAuthModal()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-lock"></i> Admin Login
-                </button>
+            <!-- Drawer Footer Branding -->
+            <div class="pt-4 border-t border-slate-800 text-center">
+                <p class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5 font-medium">
+                    <i class="fa-solid fa-code text-indigo-400"></i>
+                    <span>Sviluppato da <strong class="text-white font-semibold">Prince</strong></span>
+                </p>
             </div>
-        </header>
+        </div>
+    </div>
 
-        <!-- Stats Metrics Dashboard (ADMIN ONLY) -->
-        <div id="adminStatsPanel" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-                <div class="p-2.5 bg-blue-50 text-blue-600 rounded-xl"><i class="fa-solid fa-users text-lg"></i></div>
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
+
+        <!-- Admin KPI Stats Banner (Hidden by Default, Visible for Admin) -->
+        <div id="adminStatsPanel" class="hidden grid grid-cols-2 md:grid-cols-4 gap-3.5 no-print">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">Totale Dipendenti</p>
-                    <p id="statTotalEmployees" class="text-lg font-bold text-slate-900">0</p>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Dipendenti</p>
+                    <p id="statTotalWorkers" class="text-xl font-extrabold text-slate-900 mt-0.5">5</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-indigo-50 text-indigo-600">
+                    <i class="fa-solid fa-users text-lg"></i>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-                <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl"><i class="fa-solid fa-clock text-lg"></i></div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">Ore Programmate</p>
-                    <p id="statTotalHours" class="text-lg font-bold text-slate-900">0 h</p>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ore Contratto</p>
+                    <p id="statContractHours" class="text-xl font-extrabold text-slate-900 mt-0.5">164h</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-blue-50 text-blue-600">
+                    <i class="fa-solid fa-clock text-lg"></i>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-                <div class="p-2.5 bg-amber-50 text-amber-600 rounded-xl"><i class="fa-solid fa-user-clock text-lg"></i></div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">Straordinari</p>
-                    <p id="statOvertime" class="text-lg font-bold text-slate-900">0 h</p>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ore Effettive</p>
+                    <p id="statActualHours" class="text-xl font-extrabold text-indigo-600 mt-0.5">0h</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-indigo-50 text-indigo-600">
+                    <i class="fa-solid fa-calculator text-lg"></i>
                 </div>
             </div>
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-                <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><i class="fa-solid fa-circle-check text-lg"></i></div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                 <div>
-                    <p class="text-xs text-slate-500 font-medium">Turni Attivi Settimana</p>
-                    <p id="statActiveShifts" class="text-lg font-bold text-slate-900">0</p>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Bilancio Straordinari</p>
+                    <p id="statDiffHours" class="text-xl font-extrabold text-slate-900 mt-0.5">0h</p>
+                </div>
+                <div id="statDiffIconBg" class="p-2.5 rounded-xl bg-slate-50 text-slate-600">
+                    <i id="statDiffIcon" class="fa-solid fa-scale-balanced text-lg"></i>
                 </div>
             </div>
         </div>
 
-        <!-- Week Slider Navigation Header -->
-        <div class="bg-white p-3.5 md:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 no-print">
-            <div class="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
-                <button onclick="changeWeek(-1)" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1 transition">
-                    <i class="fa-solid fa-chevron-left"></i> Precedente
-                </button>
-                <button onclick="resetToCurrentWeek()" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition">
-                    Oggi
-                </button>
-                <button onclick="changeWeek(1)" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1 transition">
-                    Successiva <i class="fa-solid fa-chevron-right"></i>
-                </button>
-            </div>
-            <div class="text-center md:text-right">
-                <span id="currentWeekRange" class="text-sm md:text-base font-bold text-slate-900 block"></span>
-            </div>
-        </div>
+        <!-- Dynamic Infinite Week Slider Control Panel Card -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm no-print">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                
+                <!-- Infinite Date Slider Navigation -->
+                <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-start">
+                    <button onclick="navigateWeek(-1)" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 shadow-sm">
+                        <i class="fa-solid fa-chevron-left"></i>
+                        <span class="hidden xs:inline">Prec.</span>
+                    </button>
 
-        <!-- Filter & Control Panel -->
-        <div class="bg-white p-3.5 md:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 no-print">
-            <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
-                <!-- Search Input -->
-                <div class="relative flex-1 md:w-64">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-                    <input type="text" id="searchInput" oninput="renderSchedule()" placeholder="Cerca dipendente..." class="w-full pl-8 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button onclick="navigateWeekToCurrent()" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 border border-indigo-100 shadow-sm">
+                        <i class="fa-solid fa-calendar-day"></i>
+                        <span>Oggi</span>
+                    </button>
+
+                    <button onclick="navigateWeek(1)" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1 shadow-sm">
+                        <span class="hidden xs:inline">Succ.</span>
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
                 </div>
 
-                <!-- Worker Select Dropdown -->
-                <select id="workerSelect" onchange="filterWorkerOnly()" class="flex-1 md:w-56 text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="all">-- Tutti i Dipendenti --</option>
-                </select>
+                <!-- Current Dynamic Date Range Indicator -->
+                <div class="text-center sm:text-right">
+                    <div id="weekDateRangeLabel" class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
+                        -- Set - -- Set 2026
+                    </div>
+                    <p id="weekRelativeLabel" class="text-[11px] font-semibold text-indigo-600">Settimana Corrente</p>
+                </div>
 
-                <!-- Role Filter -->
-                <select id="roleFilter" onchange="renderSchedule()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="all">Tutte le Mansioni</option>
-                    <option value="cucina">Cucina</option>
-                    <option value="banco">Banco</option>
-                    <option value="sala">Sala</option>
-                </select>
-            </div>
+                <!-- Quick Admin Employee Action Button (Visible only to Admin) -->
+                <div id="adminQuickActions" class="hidden flex items-center space-x-2">
+                    <button onclick="openManageWorkersModal()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 shadow-md">
+                        <i class="fa-solid fa-user-plus text-xs"></i>
+                        <span>Gestisci Dipendenti</span>
+                    </button>
+                </div>
 
-            <!-- Admin Controls -->
-            <div id="adminActionGroup" class="hidden flex items-center gap-2 w-full md:w-auto justify-end">
-                <button onclick="openEmployeeModal()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-user-plus"></i> Nuovo Dipendente
-                </button>
             </div>
         </div>
 
-        <!-- Main Schedule Grid Table -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden print-border">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-xs">
+        <!-- Schedule Grid Table Card -->
+        <div id="printable-schedule" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-4 sm:p-6">
+            
+            <!-- Table Header Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-slate-100 gap-2">
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <h2 id="scheduleHeaderTitle" class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Programmazione Turni Settimanale</h2>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-700 uppercase tracking-wider">Ufficiale</span>
+                    </div>
+                    <p id="scheduleHeaderSubtitle" class="text-xs font-semibold text-slate-500 mt-0.5">Caricamento in corso...</p>
+                </div>
+                <div>
+                    <span id="activeWorkerFilterBadge" class="text-xs bg-slate-100 text-slate-700 px-3 py-1.5 rounded-xl font-bold border border-slate-200/80 shadow-sm inline-block">
+                        Vista: Tutti
+                    </span>
+                </div>
+            </div>
+
+            <!-- Schedule Table -->
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse min-w-[860px]">
                     <thead>
-                        <tr id="tableHeaderRow" class="bg-slate-900 text-white uppercase text-[11px] font-semibold tracking-wider">
-                            <th class="py-3.5 px-4 min-w-[140px]">Dipendente</th>
-                            <th class="py-3.5 px-3 text-center min-w-[90px]">Mansione</th>
-                            <th class="py-3.5 px-3 text-center min-w-[90px]">Ore</th>
-                            <th id="th-0" class="py-3.5 px-3 text-center min-w-[100px]">Lunedì</th>
-                            <th id="th-1" class="py-3.5 px-3 text-center min-w-[100px]">Martedì</th>
-                            <th id="th-2" class="py-3.5 px-3 text-center min-w-[100px]">Mercoledì</th>
-                            <th id="th-3" class="py-3.5 px-3 text-center min-w-[100px]">Giovedì</th>
-                            <th id="th-4" class="py-3.5 px-3 text-center min-w-[100px]">Venerdì</th>
-                            <th id="th-5" class="py-3.5 px-3 text-center min-w-[100px] bg-slate-800">Sabato</th>
-                            <th id="th-6" class="py-3.5 px-3 text-center min-w-[100px] bg-slate-800">Domenica</th>
-                            <th id="adminColHeader" class="hidden py-3.5 px-3 text-center min-w-[70px] no-print">Azioni</th>
+                        <tr class="border-b border-slate-200 bg-slate-50/80">
+                            <th class="py-3.5 px-3 text-xs font-extrabold text-slate-600 uppercase tracking-wider w-48">Dipendente</th>
+                            <th class="py-3 px-2 text-xs font-bold text-slate-700 text-center">Lun<br><span id="col-date-0" class="text-[10px] text-slate-400 font-normal">--/--</span></th>
+                            <th class="py-3 px-2 text-xs font-bold text-slate-700 text-center">Mar<br><span id="col-date-1" class="text-[10px] text-slate-400 font-normal">--/--</span></th>
+                            <th class="py-3 px-2 text-xs font-bold text-slate-700 text-center">Mer<br><span id="col-date-2" class="text-[10px] text-slate-400 font-normal">--/--</span></th>
+                            <th class="py-3 px-2 text-xs font-bold text-slate-700 text-center">Gio<br><span id="col-date-3" class="text-[10px] text-slate-400 font-normal">--/--</span></th>
+                            <th class="py-3 px-2 text-xs font-bold text-slate-700 text-center">Ven<br><span id="col-date-4" class="text-[10px] text-slate-400 font-normal">--/--</span></th>
+                            <th class="py-3 px-2 text-xs font-bold text-slate-700 text-center">Sab<br><span id="col-date-5" class="text-[10px] text-slate-400 font-normal">--/--</span></th>
+                            <th class="py-3 px-2 text-xs font-bold text-indigo-800 text-center bg-indigo-50/40">Dom<br><span id="col-date-6" class="text-[10px] text-indigo-500 font-normal">--/--</span></th>
+                            <!-- Admin Visible Total Column -->
+                            <th class="py-3 px-3 text-xs font-extrabold text-indigo-900 bg-indigo-100/60 text-center uppercase tracking-wider w-28 border-l border-indigo-200">
+                                <i class="fa-solid fa-calculator mr-1"></i>Ore Tot
+                            </th>
                         </tr>
                     </thead>
-                    <tbody id="scheduleTableBody" class="divide-y divide-slate-200">
-                        <!-- Dynamic Rows Injected Here -->
+                    <tbody id="scheduleTableBody" class="divide-y divide-slate-100 text-xs">
+                        <!-- Dynamic Rows Injected via JavaScript -->
                     </tbody>
                 </table>
             </div>
-        </div>
 
-        <!-- Legend Footer -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-wrap gap-4 text-xs text-slate-600 no-print">
-            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-sky-500"></span> Cucina</div>
-            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500"></span> Banco</div>
-            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> Sala</div>
-            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-purple-100 border border-purple-300"></span> Turno Spezzato</div>
-            <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-md bg-slate-100 border border-slate-200"></span> Riposo</div>
-        </div>
-
-    </div>
-
-    <!-- Modals -->
-
-    <!-- 1. Admin Authentication Modal -->
-    <div id="authModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200 space-y-4">
-            <div class="flex items-center justify-between border-b pb-3">
-                <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-user-shield text-indigo-600 mr-2"></i>Accesso Admin</h3>
-                <button onclick="toggleAuthModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            <!-- Table Legend Footer -->
+            <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap justify-between items-center text-xs text-slate-400 gap-3">
+                <div class="flex items-center space-x-4">
+                    <span class="inline-flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-sky-500 mr-1.5"></span> Cucina</span>
+                    <span class="inline-flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1.5"></span> Banco</span>
+                    <span class="inline-flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1.5"></span> Sala</span>
+                    <span class="inline-flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-purple-500 mr-1.5"></span> Spezzato</span>
+                    <span class="inline-flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-rose-400 mr-1.5"></span> Riposo</span>
+                </div>
+                <div class="flex items-center space-x-3 text-[11px]">
+                    <span class="font-semibold text-slate-500">Sviluppato da <strong class="text-indigo-600">Prince</strong></span>
+                    <span>•</span>
+                    <span id="printTimestamp" class="font-medium">Aggiornato in tempo reale</span>
+                </div>
             </div>
-            <p class="text-xs text-slate-500">Inserisci la password per gestire i turni e la programmazione.</p>
+
+        </div>
+    </main>
+
+    <!-- Admin Login Password Modal -->
+    <div id="adminAuthModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900">Accesso Amministratore</h3>
+                </div>
+                <button onclick="toggleAdminModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-slate-500">Inserisci la password amministratore per sbloccare la gestione dei dipendenti e la modifica dei turni.</p>
             <div>
-                <label class="text-xs font-semibold text-slate-600">Password Admin</label>
-                <input type="password" id="adminPasswordInput" placeholder="Inserisci password..." class="w-full mt-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500">
+                <input type="password" id="adminPasswordInput" placeholder="Password Admin" onkeyup="if(event.key==='Enter') loginAdmin()" class="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <p id="adminAuthError" class="text-xs text-rose-500 mt-1.5 font-semibold hidden"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Password non valida. Riprova.</p>
             </div>
-            <div class="flex gap-2 pt-2">
-                <button onclick="toggleAuthModal()" class="w-1/2 py-2 text-xs bg-slate-100 hover:bg-slate-200 font-medium text-slate-700 rounded-xl">Annulla</button>
-                <button onclick="loginAdmin()" class="w-1/2 py-2 text-xs bg-indigo-600 hover:bg-indigo-700 font-medium text-white rounded-xl shadow-sm">Accedi</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 2. Shift Edit Modal -->
-    <div id="shiftModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 space-y-4">
-            <div class="flex items-center justify-between border-b pb-3">
-                <h3 id="shiftModalTitle" class="text-base font-bold text-slate-900">Modifica Turno</h3>
-                <button onclick="closeShiftModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <!-- Shift Type -->
-            <div class="space-y-1.5">
-                <label class="text-xs font-semibold text-slate-600">Tipologia Turno</label>
-                <div class="grid grid-cols-3 gap-2">
-                    <button type="button" onclick="setShiftType('shift')" id="btnTypeShift" class="py-2 text-xs font-medium rounded-xl border">Continuato</button>
-                    <button type="button" onclick="setShiftType('split')" id="btnTypeSplit" class="py-2 text-xs font-medium rounded-xl border">Spezzato</button>
-                    <button type="button" onclick="setShiftType('off')" id="btnTypeOff" class="py-2 text-xs font-medium rounded-xl border">Riposo / Assente</button>
-                </div>
-            </div>
-
-            <!-- Shift Inputs -->
-            <div id="shiftTimeSection" class="space-y-3">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-xs font-medium text-slate-600">Ora Inizio</label>
-                        <input type="text" id="shiftStartTime" placeholder="09:00" class="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
-                    </div>
-                    <div>
-                        <label class="text-xs font-medium text-slate-600">Ora Fine</label>
-                        <input type="text" id="shiftEndTime" placeholder="16:00" class="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
-                    </div>
-                </div>
-                <div id="splitShiftFields" class="hidden grid grid-cols-2 gap-3 border-t pt-2">
-                    <div>
-                        <label class="text-xs font-medium text-slate-600">Ora Inizio 2</label>
-                        <input type="text" id="shiftStartTime2" placeholder="18:30" class="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
-                    </div>
-                    <div>
-                        <label class="text-xs font-medium text-slate-600">Ora Fine 2</label>
-                        <input type="text" id="shiftEndTime2" placeholder="21:45" class="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
-                    </div>
-                </div>
-                <div>
-                    <label class="text-xs font-medium text-slate-600">Note / Sede (Opzionale)</label>
-                    <input type="text" id="shiftLocation" placeholder="es. Cinecittà" class="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
-                </div>
-            </div>
-
-            <div id="shiftOffSection" class="hidden">
-                <label class="text-xs font-medium text-slate-600">Motivo</label>
-                <input type="text" id="shiftOffText" placeholder="Riposo / Ferie / Permesso" class="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl">
-            </div>
-
-            <div class="flex items-center justify-between pt-3 border-t">
-                <button onclick="removeShift()" class="px-3 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg">Rimuovi</button>
-                <div class="flex gap-2">
-                    <button onclick="closeShiftModal()" class="px-3 py-1.5 text-xs bg-slate-100 text-slate-700 rounded-lg">Annulla</button>
-                    <button onclick="saveShift()" class="px-4 py-1.5 text-xs bg-indigo-600 text-white rounded-lg">Salva Turno</button>
-                </div>
+            <div class="flex justify-end space-x-2 pt-2">
+                <button onclick="toggleAdminModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">Annulla</button>
+                <button onclick="loginAdmin()" class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md transition-all">Accedi</button>
             </div>
         </div>
     </div>
 
-    <!-- 3. Employee Modal -->
-    <div id="employeeModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200 space-y-4">
-            <div class="flex items-center justify-between border-b pb-3">
-                <h3 id="empModalTitle" class="text-base font-bold text-slate-900">Nuovo Dipendente</h3>
-                <button onclick="closeEmployeeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+    <!-- Manage Employees Modal (Add / Edit / Remove Workers Name & Contract Hours) -->
+    <div id="manageWorkersModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center space-x-2">
+                    <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                        <i class="fa-solid fa-users-gear"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Gestione Dipendenti</h3>
+                        <p class="text-[11px] text-slate-500">Aggiungi, modifica o rimuovi il personale</p>
+                    </div>
+                </div>
+                <button onclick="closeManageWorkersModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <div class="space-y-3">
-                <div>
-                    <label class="text-xs font-semibold text-slate-600">Nome e Cognome</label>
-                    <input type="text" id="empNameInput" placeholder="es. YOHANEL" class="w-full mt-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+            <!-- Add / Edit Form -->
+            <form id="workerForm" onsubmit="saveWorkerForm(event)" class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-3">
+                <input type="hidden" id="editWorkerOriginalName" value="">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div class="sm:col-span-1">
+                        <label class="text-[11px] font-bold text-slate-600">Nome Dipendente</label>
+                        <input type="text" id="workerFormName" required placeholder="Es. Marco" class="w-full mt-1 px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-600">Mansione / Ruolo</label>
+                        <select id="workerFormRole" class="w-full mt-1 px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+                            <option value="Cucina">Cucina</option>
+                            <option value="Banco">Banco</option>
+                            <option value="Sala">Sala</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-600">Ore Contratto/Sett</label>
+                        <input type="number" step="0.5" id="workerFormHours" required placeholder="Es. 30" class="w-full mt-1 px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+                    </div>
                 </div>
-                <div>
-                    <label class="text-xs font-semibold text-slate-600">Mansione</label>
-                    <select id="empRoleInput" class="w-full mt-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl">
-                        <option value="cucina">Cucina</option>
-                        <option value="banco">Banco</option>
-                        <option value="sala">Sala</option>
-                    </select>
+                <div class="flex justify-end space-x-2 pt-1">
+                    <button type="button" id="btnCancelWorkerEdit" onclick="resetWorkerForm()" class="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-lg hidden">Annulla Modifica</button>
+                    <button type="submit" id="btnSubmitWorkerForm" class="px-4 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm">
+                        <i class="fa-solid fa-plus mr-1"></i> Aggiungi
+                    </button>
                 </div>
-                <div>
-                    <label class="text-xs font-semibold text-slate-600">Ore Contratto Settimanali</label>
-                    <input type="number" id="empHoursInput" value="40" class="w-full mt-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl">
+            </form>
+
+            <!-- Workers Roster List -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+                <p class="text-xs font-bold text-slate-700 uppercase tracking-wider">Elenco Dipendenti Attivi</p>
+                <div id="workersManageList" class="space-y-2">
+                    <!-- Dynamic List Item -->
                 </div>
             </div>
 
-            <div class="flex justify-end gap-2 pt-3 border-t">
-                <button onclick="closeEmployeeModal()" class="px-3 py-1.5 text-xs bg-slate-100 text-slate-700 rounded-lg">Annulla</button>
-                <button onclick="saveEmployee()" class="px-4 py-1.5 text-xs bg-indigo-600 text-white rounded-lg">Salva</button>
+            <div class="border-t border-slate-100 pt-3 flex justify-end">
+                <button onclick="closeManageWorkersModal()" class="px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl">Chiudi</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Edit / Add Shift Cell Modal -->
+    <div id="shiftEditorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div>
+                    <h3 id="shiftModalTitle" class="text-base font-bold text-slate-900">Modifica Turno</h3>
+                    <p id="shiftModalSubtitle" class="text-xs text-indigo-600 font-semibold mt-0.5">Yohanel • Lunedì 21/09</p>
+                </div>
+                <button onclick="closeShiftEditorModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form onsubmit="saveShiftCell(event)" class="space-y-3.5">
+                <input type="hidden" id="modalShiftWorker">
+                <input type="hidden" id="modalShiftDayIndex">
+
+                <div>
+                    <label class="text-xs font-bold text-slate-700">Orario Turno</label>
+                    <input type="text" id="modalShiftTime" placeholder="Es. 9 / 15.45 oppure 9.00/12.00 - 12.15/16.00" class="w-full mt-1.5 px-3.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <p class="text-[10px] text-slate-400 mt-1">Sintassi spezzato: usa un trattino per separare i blocchi (es: 10/14 - 18/22).</p>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-700">Note / Location Mansione (Opzionale)</label>
+                    <input type="text" id="modalShiftNote" placeholder="Es. Cinecittà / Accademia / BOF" class="w-full mt-1.5 px-3.5 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <!-- Quick Presets -->
+                <div>
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Scorciatoie Rapide</label>
+                    <div class="flex flex-wrap gap-2 mt-1.5">
+                        <button type="button" onclick="setShiftPreset('Riposo', '')" class="px-2.5 py-1 text-xs font-semibold bg-rose-50 text-rose-600 border border-rose-200 rounded-lg hover:bg-rose-100">Riposo</button>
+                        <button type="button" onclick="setShiftPreset('9 / 15', '')" class="px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200">Mattina (9/15)</button>
+                        <button type="button" onclick="setShiftPreset('16 / 21.45', '')" class="px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200">Pomeriggio (16/21.45)</button>
+                        <button type="button" onclick="setShiftPreset('10.45/14 - 18.30/21.45', '')" class="px-2.5 py-1 text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100">Spezzato</button>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+                    <button type="button" onclick="setShiftPreset('-', '')" class="px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors">Resetta Turno</button>
+                    <div class="flex space-x-2">
+                        <button type="button" onclick="closeShiftEditorModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">Annulla</button>
+                        <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md">Salva Turno</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast Message -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 hidden transition-all duration-300">
+        <div class="px-4 py-3 bg-slate-900 text-white rounded-xl shadow-2xl text-xs font-bold flex items-center space-x-2.5 border border-slate-800">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+            <span id="toastText">Operazione completata con successo!</span>
         </div>
     </div>
 
     <script>
-        // State Management
+        /* APP CONSTANTS & STATE MANAGERS */
+        const ADMIN_PASSWORD_HASH = "Tuscolana853";
+
+        // Initial default 5 employees roster
+        const defaultWorkers = {
+            "Yohanel": { role: "Cucina", contractHours: 40, color: "bg-sky-100 text-sky-800 border-sky-200" },
+            "Prince": { role: "Cucina", contractHours: 30, color: "bg-sky-100 text-sky-800 border-sky-200" },
+            "Asia": { role: "Banco", contractHours: 40, color: "bg-amber-100 text-amber-800 border-amber-200" },
+            "Anna": { role: "Banco", contractHours: 30, color: "bg-amber-100 text-amber-800 border-amber-200" },
+            "Elisa": { role: "Banco", contractHours: 24, color: "bg-amber-100 text-amber-800 border-amber-200" }
+        };
+
+        // State variables
+        let appWorkers = JSON.parse(localStorage.getItem('shift_planner_workers_v1')) || defaultWorkers;
+        let appSchedules = JSON.parse(localStorage.getItem('shift_planner_schedules_v1')) || {};
+        let currentWeekStartDate = getMonday(new Date());
         let isAdmin = false;
-        let adminPasscode = "Tuscolana853";
-        let weekOffset = 0; // 0 = Current Week, 1 = Next Week, -1 = Previous Week
-        let selectedWorkerId = "all";
-        
-        const ROLES = {
-            cucina: { name: 'Cucina', badge: 'bg-sky-100 text-sky-800 border-sky-200' },
-            banco: { name: 'Banco', badge: 'bg-amber-100 text-amber-800 border-amber-200' },
-            sala: { name: 'Sala', badge: 'bg-emerald-100 text-emerald-800 border-emerald-200' }
-        };
 
-        const DAYS = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+        /* INITIALIZATION */
+        window.addEventListener('DOMContentLoaded', () => {
+            // Restore saved worker filter preference
+            const savedWorker = localStorage.getItem('saved_device_worker');
+            if (savedWorker && (appWorkers[savedWorker] || savedWorker === 'ALL')) {
+                document.getElementById('workerFilter').value = savedWorker;
+                document.getElementById('rememberDeviceWorker').checked = true;
+            }
 
-        let employees = JSON.parse(localStorage.getItem('planner_employees')) || [
-            { id: 'e1', name: 'YOHANEL', role: 'cucina', contractHours: 40 },
-            { id: 'e2', name: 'PRINCE', role: 'cucina', contractHours: 30 },
-            { id: 'e3', name: 'Tito', role: 'cucina', contractHours: 40 },
-            { id: 'e4', name: 'ASIA', role: 'banco', contractHours: 40 },
-            { id: 'e5', name: 'ELISA', role: 'banco', contractHours: 24 },
-            { id: 'e6', name: 'ANNA', role: 'banco', contractHours: 30 }
-        ];
-
-        let shifts = JSON.parse(localStorage.getItem('planner_shifts')) || [
-            { id: 's1', employeeId: 'e1', weekOffset: 0, dayIndex: 0, type: 'off', customText: 'Riposo' },
-            { id: 's2', employeeId: 'e1', weekOffset: 0, dayIndex: 1, type: 'shift', startTime: '09:00', endTime: '15:45' },
-            { id: 's3', employeeId: 'e1', weekOffset: 0, dayIndex: 2, type: 'shift', startTime: '09:00', endTime: '16:15' },
-            { id: 's4', employeeId: 'e1', weekOffset: 0, dayIndex: 3, type: 'shift', startTime: '09:00', endTime: '16:00' },
-            { id: 's5', employeeId: 'e1', weekOffset: 0, dayIndex: 4, type: 'shift', startTime: '15:00', endTime: '21:45' },
-            { id: 's6', employeeId: 'e1', weekOffset: 0, dayIndex: 5, type: 'shift', startTime: '09:00', endTime: '15:00' },
-            { id: 's7', employeeId: 'e1', weekOffset: 0, dayIndex: 6, type: 'shift', startTime: '09:00', endTime: '16:00' },
+            // Pre-seed mock shift data for current week and next week if empty
+            seedInitialScheduleData();
             
-            { id: 's8', employeeId: 'e5', weekOffset: 0, dayIndex: 0, type: 'shift', startTime: '10:45', endTime: '16:00', location: 'Cinecittà' },
-            { id: 's9', employeeId: 'e5', weekOffset: 0, dayIndex: 4, type: 'split', startTime: '10:45', endTime: '14:00', startTime2: '18:30', endTime2: '21:45' }
-        ];
+            // Render view
+            renderApp();
+        });
 
-        let activeShiftEdit = null;
-        let activeEmployeeEditId = null;
-
-        // Initialization
-        window.onload = function() {
-            populateWorkerDropdown();
-            renderSchedule();
-        };
-
-        // Sidebar Drawer Controls
-        function openSidebar() {
-            document.getElementById('sidebar').classList.remove('-translate-x-full');
-            document.getElementById('sidebarOverlay').classList.remove('hidden');
-        }
-
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.add('-translate-x-full');
-            document.getElementById('sidebarOverlay').classList.add('hidden');
-        }
-
-        function saveData() {
-            localStorage.setItem('planner_employees', JSON.stringify(employees));
-            localStorage.setItem('planner_shifts', JSON.stringify(shifts));
-            populateWorkerDropdown();
-            renderSchedule();
-        }
-
-        // Week Date Helpers
+        /* DATE CALCULATIONS & INFINITE SLIDER HELPER FUNCTIONS */
         function getMonday(d) {
-            d = new Date(d);
-            const day = d.getDay();
-            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-            return new Date(d.setDate(diff));
+            const date = new Date(d);
+            const day = date.getDay();
+            const diff = date.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+            const monday = new Date(date.setDate(diff));
+            monday.setHours(0, 0, 0, 0);
+            return monday;
         }
 
-        function getWeekDates(offset) {
-            const today = new Date();
-            const monday = getMonday(today);
-            monday.setDate(monday.getDate() + (offset * 7));
-            
-            const dates = [];
+        function formatDateKey(mondayDate) {
+            const year = mondayDate.getFullYear();
+            const month = String(mondayDate.getMonth() + 1).padStart(2, '0');
+            const day = String(mondayDate.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getWeekDaysArray(mondayDate) {
+            const days = [];
             for (let i = 0; i < 7; i++) {
-                const nextDay = new Date(monday);
-                nextDay.setDate(monday.getDate() + i);
-                dates.push(nextDay);
+                const day = new Date(mondayDate);
+                day.setDate(mondayDate.getDate() + i);
+                days.push(day);
             }
-            return dates;
+            return days;
         }
 
-        function changeWeek(direction) {
-            weekOffset += direction;
-            renderSchedule();
+        function navigateWeek(direction) {
+            const newMonday = new Date(currentWeekStartDate);
+            newMonday.setDate(currentWeekStartDate.getDate() + (direction * 7));
+            currentWeekStartDate = newMonday;
+            renderApp();
         }
 
-        function resetToCurrentWeek() {
-            weekOffset = 0;
-            renderSchedule();
+        function navigateWeekToCurrent() {
+            currentWeekStartDate = getMonday(new Date());
+            renderApp();
         }
 
-        function populateWorkerDropdown() {
-            const dropdown = document.getElementById('workerSelect');
-            const currentVal = dropdown.value;
-            dropdown.innerHTML = '<option value="all">-- Tutti i Dipendenti --</option>';
-            employees.forEach(emp => {
-                const opt = document.createElement('option');
-                opt.value = emp.id;
-                opt.innerText = `${emp.name} (${ROLES[emp.role]?.name || emp.role})`;
-                dropdown.appendChild(opt);
-            });
-            dropdown.value = currentVal;
-        }
-
-        function filterWorkerOnly() {
-            selectedWorkerId = document.getElementById('workerSelect').value;
-            renderSchedule();
-        }
-
-        // Calculations & Helpers
-        function parseHours(timeStr) {
-            if (!timeStr) return 0;
-            const parts = timeStr.replace('.', ':').split(':');
-            const h = parseFloat(parts[0]) || 0;
-            const m = parseFloat(parts[1]) || 0;
-            return h + (m / 60);
-        }
-
-        function calculateShiftHours(shift) {
-            if (!shift || shift.type === 'off') return 0;
-            if (shift.type === 'split') {
-                const h1 = Math.max(0, parseHours(shift.endTime) - parseHours(shift.startTime));
-                const h2 = Math.max(0, parseHours(shift.endTime2) - parseHours(shift.startTime2));
-                return h1 + h2;
-            }
-            return Math.max(0, parseHours(shift.endTime) - parseHours(shift.startTime));
-        }
-
-        function getEmployeeHours(empId) {
-            return shifts
-                .filter(s => s.employeeId === empId && (s.weekOffset === weekOffset || (s.weekOffset === undefined && weekOffset === 0)))
-                .reduce((total, s) => total + calculateShiftHours(s), 0);
-        }
-
-        // Main Render Function
-        function renderSchedule() {
-            const tableBody = document.getElementById('scheduleTableBody');
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const roleFilter = document.getElementById('roleFilter').value;
-
-            // Calculate Week Dates
-            const weekDates = getWeekDates(weekOffset);
-            const startDateStr = `${weekDates[0].getDate()}/${weekDates[0].getMonth() + 1}`;
-            const endDateStr = `${weekDates[6].getDate()}/${weekDates[6].getMonth() + 1}/${weekDates[6].getFullYear()}`;
+        /* DATA SEEDING FOR REALISTIC DEMO */
+        function seedInitialScheduleData() {
+            const currentMonday = getMonday(new Date());
+            const currentWeekKey = formatDateKey(currentMonday);
             
-            document.getElementById('currentWeekRange').innerText = `Settimana: ${startDateStr} - ${endDateStr}`;
+            const nextMonday = new Date(currentMonday);
+            nextMonday.setDate(currentMonday.getDate() + 7);
+            const nextWeekKey = formatDateKey(nextMonday);
 
-            // Update Table Headers
-            weekDates.forEach((dateObj, idx) => {
-                const th = document.getElementById(`th-${idx}`);
-                if (th) {
-                    th.innerHTML = `${DAYS[idx]} <br><span class="text-[10px] font-normal opacity-80">${dateObj.getDate()}/${dateObj.getMonth() + 1}</span>`;
+            if (!appSchedules[currentWeekKey]) {
+                appSchedules[currentWeekKey] = {
+                    "Yohanel": [
+                        { time: "Riposo", note: "" },
+                        { time: "9 / 15.45", note: "" },
+                        { time: "9 / 16.15", note: "" },
+                        { time: "9 / 16", note: "" },
+                        { time: "15 / 21.45", note: "" },
+                        { time: "9 / 15", note: "" },
+                        { time: "9 / 16", note: "" }
+                    ],
+                    "Prince": [
+                        { time: "9 / 14.30", note: "" },
+                        { time: "Riposo", note: "" },
+                        { time: "15.45 / 21.45", note: "" },
+                        { time: "16 / 21.45", note: "" },
+                        { time: "9 / 15", note: "" },
+                        { time: "Riposo", note: "" },
+                        { time: "16 / 21.45", note: "" }
+                    ],
+                    "Asia": [
+                        { time: "18 / 21.45", note: "" },
+                        { time: "18 / 21.45", note: "" },
+                        { time: "11 / 16.00", note: "" },
+                        { time: "17.30 / 21.45", note: "" },
+                        { time: "Riposo", note: "" },
+                        { time: "18 / 22", note: "" },
+                        { time: "18 / 21.45", note: "" }
+                    ],
+                    "Anna": [
+                        { time: "11 / 16", note: "" },
+                        { time: "11 / 16", note: "" },
+                        { time: "Riposo", note: "" },
+                        { time: "11 / 16", note: "" },
+                        { time: "15 / 20.30", note: "" },
+                        { time: "15 / 21", note: "" },
+                        { time: "14 / 19", note: "" }
+                    ],
+                    "Elisa": [
+                        { time: "10.45 / 16", note: "Cinecittà" },
+                        { time: "Riposo", note: "" },
+                        { time: "18 / 21.45", note: "" },
+                        { time: "15 / 20.15", note: "Cinecittà" },
+                        { time: "10.45/14 - 18.30/21.45", note: "" },
+                        { time: "10.45 / 14.30", note: "" },
+                        { time: "11 / 14", note: "" }
+                    ]
+                };
+            }
+
+            if (!appSchedules[nextWeekKey]) {
+                appSchedules[nextWeekKey] = {
+                    "Yohanel": [
+                        { time: "Riposo", note: "" },
+                        { time: "15.00/18.00 - 18.15/21.45", note: "" },
+                        { time: "15.00/18.00 - 18.15/21.45", note: "BOF" },
+                        { time: "12.00 / 16.00", note: "" },
+                        { time: "9.00/12.00 - 12.15/16.00", note: "" },
+                        { time: "16.00 / 22.00", note: "" },
+                        { time: "12.15 / 16.00", note: "" }
+                    ],
+                    "Prince": [
+                        { time: "9.00/14.00 - 16.30/21.45", note: "" },
+                        { time: "9.00 / 15.00", note: "" },
+                        { time: "9.00 / 15.00", note: "" },
+                        { time: "Riposo", note: "" },
+                        { time: "Riposo", note: "" },
+                        { time: "9.00/12.00 - 12.15/16.00", note: "" },
+                        { time: "16.00 / 21.45", note: "" }
+                    ],
+                    "Asia": [
+                        { time: "11.00/16.30 - 18.00/21.45", note: "" },
+                        { time: "11.00/14.30 - 18.00/21.45", note: "" },
+                        { time: "11.00 / 17.00", note: "" },
+                        { time: "11.00/14.30 - 16.30/21.45", note: "Cinecittà" },
+                        { time: "Riposo", note: "" },
+                        { time: "11.00/14.30 - 18.00/22.00", note: "" },
+                        { time: "11.00/14.00 - 18.00/21.45", note: "" }
+                    ],
+                    "Anna": [
+                        { time: "11.30 / 16.30", note: "" },
+                        { time: "15.00 / 19.30", note: "" },
+                        { time: "Riposo", note: "" },
+                        { time: "13.00 / 18.00", note: "" },
+                        { time: "11.00 / 16.30", note: "" },
+                        { time: "16.00 / 21.00", note: "" },
+                        { time: "14.00 / 19.00", note: "" }
+                    ],
+                    "Elisa": [
+                        { time: "Riposo", note: "" },
+                        { time: "18.00 / 21.45", note: "" },
+                        { time: "17.00 / 21.45", note: "" },
+                        { time: "10.45 / 15.45", note: "Cinecittà" },
+                        { time: "16.30 / 21.45", note: "" },
+                        { time: "Riposo", note: "" },
+                        { time: "16.00 / 20.15", note: "Cinecittà" }
+                    ]
+                };
+            }
+
+            saveSchedulesToStorage();
+        }
+
+        function saveSchedulesToStorage() {
+            localStorage.setItem('shift_planner_schedules_v1', JSON.stringify(appSchedules));
+        }
+
+        function saveWorkersToStorage() {
+            localStorage.setItem('shift_planner_workers_v1', JSON.stringify(appWorkers));
+        }
+
+        /* CALCULATIONS: SHIFT HOURS & OVERTIME */
+        function parseTimeToDecimal(timeStr) {
+            if (!timeStr) return 0;
+            const cleaned = timeStr.trim().replace(':', '.');
+            const parts = cleaned.split('.');
+            let hours = parseFloat(parts[0]) || 0;
+            if (parts.length > 1) {
+                let minsStr = parts[1];
+                if (minsStr.length === 1) minsStr += '0';
+                const mins = parseFloat(minsStr) || 0;
+                hours += (mins / 60);
+            }
+            return hours;
+        }
+
+        function calculateShiftHours(shiftString) {
+            if (!shiftString || shiftString.toLowerCase().includes('riposo') || shiftString.trim() === '-') {
+                return 0;
+            }
+            let total = 0;
+            const blocks = shiftString.split('-');
+            blocks.forEach(block => {
+                const times = block.split('/');
+                if (times.length === 2) {
+                    const start = parseTimeToDecimal(times[0]);
+                    const end = parseTimeToDecimal(times[1]);
+                    if (end > start) total += (end - start);
+                }
+            });
+            return total;
+        }
+
+        function calculateWorkerWeeklyHours(workerName, weekKey) {
+            const workerShifts = (appSchedules[weekKey] && appSchedules[weekKey][workerName]) ? appSchedules[weekKey][workerName] : [];
+            let total = 0;
+            workerShifts.forEach(s => {
+                total += calculateShiftHours(s.time);
+            });
+            return total;
+        }
+
+        /* MAIN RENDER ENGINE */
+        function renderApp() {
+            const weekKey = formatDateKey(currentWeekStartDate);
+            const weekDays = getWeekDaysArray(currentWeekStartDate);
+
+            // 1. Populate Dropdown Options
+            populateWorkerFilterDropdown();
+
+            // 2. Update Date Slider Labels
+            const startDateStr = `${weekDays[0].getDate()} ${weekDays[0].toLocaleString('it-IT', { month: 'short' })}`;
+            const endDateStr = `${weekDays[6].getDate()} ${weekDays[6].toLocaleString('it-IT', { month: 'short' })} ${weekDays[6].getFullYear()}`;
+            document.getElementById('weekDateRangeLabel').innerText = `${startDateStr} - ${endDateStr}`;
+
+            const thisMonday = getMonday(new Date());
+            const diffWeeks = Math.round((currentWeekStartDate - thisMonday) / (7 * 24 * 60 * 60 * 1000));
+            const relativeLabel = document.getElementById('weekRelativeLabel');
+            if (diffWeeks === 0) {
+                relativeLabel.innerText = "Settimana Corrente";
+                relativeLabel.className = "text-[11px] font-semibold text-indigo-600";
+            } else if (diffWeeks === 1) {
+                relativeLabel.innerText = "Prossima Settimana";
+                relativeLabel.className = "text-[11px] font-semibold text-emerald-600";
+            } else if (diffWeeks === -1) {
+                relativeLabel.innerText = "Settimana Scorsa";
+                relativeLabel.className = "text-[11px] font-semibold text-slate-500";
+            } else {
+                relativeLabel.innerText = diffWeeks > 0 ? `Tra ${diffWeeks} settimane` : `${Math.abs(diffWeeks)} settimane fa`;
+                relativeLabel.className = "text-[11px] font-semibold text-slate-500";
+            }
+
+            document.getElementById('scheduleHeaderSubtitle').innerText = `Settimana da Lunedì ${startDateStr} a Domenica ${endDateStr}`;
+
+            // 3. Set Table Column Header Dates
+            weekDays.forEach((dayObj, idx) => {
+                const dateElem = document.getElementById(`col-date-${idx}`);
+                if (dateElem) {
+                    const dayNum = String(dayObj.getDate()).padStart(2, '0');
+                    const monthNum = String(dayObj.getMonth() + 1).padStart(2, '0');
+                    dateElem.innerText = `${dayNum}/${monthNum}`;
                 }
             });
 
-            // Filter Employees
-            let filteredEmps = employees.filter(e => {
-                const matchesRole = roleFilter === 'all' || e.role === roleFilter;
-                const matchesSearch = e.name.toLowerCase().includes(searchTerm);
-                const matchesWorkerSelect = selectedWorkerId === "all" || e.id === selectedWorkerId;
-                return matchesRole && matchesSearch && matchesWorkerSelect;
-            });
+            // 4. Render Table Rows
+            const filterWorker = document.getElementById('workerFilter').value;
+            document.getElementById('activeWorkerFilterBadge').innerText = "Vista: " + (filterWorker === 'ALL' ? 'Tutti i dipendenti' : filterWorker);
 
-            // Update Metrics (When visible to Admin)
-            if (isAdmin) {
-                document.getElementById('statTotalEmployees').innerText = filteredEmps.length;
-                let totalHours = 0;
-                let totalOvertime = 0;
+            const tbody = document.getElementById('scheduleTableBody');
+            tbody.innerHTML = '';
 
-                filteredEmps.forEach(e => {
-                    const scheduled = getEmployeeHours(e.id);
-                    totalHours += scheduled;
-                    if (scheduled > e.contractHours) totalOvertime += (scheduled - e.contractHours);
-                });
-
-                document.getElementById('statTotalHours').innerText = `${totalHours.toFixed(1)} h`;
-                document.getElementById('statOvertime').innerText = `${totalOvertime.toFixed(1)} h`;
-                
-                const activeShiftsCount = shifts.filter(s => 
-                    (s.weekOffset === weekOffset || (s.weekOffset === undefined && weekOffset === 0)) && s.type !== 'off'
-                ).length;
-                document.getElementById('statActiveShifts').innerText = activeShiftsCount;
+            // Ensure current week schedule data structure exists
+            if (!appSchedules[weekKey]) {
+                appSchedules[weekKey] = {};
             }
 
-            // Build Main Table Content
-            tableBody.innerHTML = '';
+            let grandTotalContractHours = 0;
+            let grandTotalActualHours = 0;
+            const workerKeys = Object.keys(appWorkers);
 
-            filteredEmps.forEach(emp => {
-                const roleObj = ROLES[emp.role] || ROLES.cucina;
-                const progHours = getEmployeeHours(emp.id);
+            workerKeys.forEach(workerName => {
+                const meta = appWorkers[workerName];
+                grandTotalContractHours += Number(meta.contractHours || 0);
 
-                let tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50/80 transition-colors';
+                // Skip if filtering specific worker
+                if (filterWorker !== 'ALL' && filterWorker !== workerName) return;
 
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-bold text-slate-900">${emp.name}</td>
-                    <td class="py-3 px-3 text-center">
-                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${roleObj.badge}">
-                            ${roleObj.name}
-                        </span>
+                // Ensure shift array exists for worker
+                if (!appSchedules[weekKey][workerName]) {
+                    appSchedules[weekKey][workerName] = Array(7).fill().map(() => ({ time: '-', note: '' }));
+                }
+
+                const shifts = appSchedules[weekKey][workerName];
+                const actualHours = calculateWorkerWeeklyHours(workerName, weekKey);
+                grandTotalActualHours += actualHours;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition-colors";
+
+                // Role badge color helper
+                let roleColorClass = "bg-slate-100 text-slate-700";
+                if (meta.role === 'Cucina') roleColorClass = "bg-sky-100 text-sky-800 border-sky-200";
+                else if (meta.role === 'Banco') roleColorClass = "bg-amber-100 text-amber-800 border-amber-200";
+                else if (meta.role === 'Sala') roleColorClass = "bg-emerald-100 text-emerald-800 border-emerald-200";
+
+                // Dipendente Cell
+                let workerCellHTML = `
+                    <td class="py-3 px-3 font-semibold text-slate-900 border-r border-slate-100 align-middle">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-slate-900 text-sm">${workerName}</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${roleColorClass}">${meta.role}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 font-medium mt-0.5">
+                            Contratto: <span class="font-bold text-slate-700">${meta.contractHours}h</span>
+                        </div>
                     </td>
-                    <td class="py-3 px-3 text-center">
-                        <div class="font-bold text-slate-700 text-xs">${progHours.toFixed(1)}h</div>
-                    </td>
-                    ${DAYS.map((_, dayIdx) => {
-                        const shift = shifts.find(s => s.employeeId === emp.id && s.dayIndex === dayIdx && (s.weekOffset === weekOffset || (s.weekOffset === undefined && weekOffset === 0)));
-                        const isWeekend = dayIdx >= 5;
-                        
-                        let cellContent = `<span class="text-slate-400 italic">Riposo</span>`;
-                        if (shift) {
-                            if (shift.type === 'split') {
-                                cellContent = `
-                                    <div class="bg-purple-50 border border-purple-200 text-purple-900 rounded-lg p-1">
-                                        <div class="text-[9px] uppercase font-bold text-purple-600">Spezzato</div>
-                                        <div class="font-semibold">${shift.startTime}/${shift.endTime}</div>
-                                        <div class="font-semibold">${shift.startTime2}/${shift.endTime2}</div>
-                                    </div>`;
-                            } else if (shift.type === 'shift') {
-                                cellContent = `
-                                    <div class="bg-slate-100 border border-slate-200 text-slate-800 rounded-lg p-1.5">
-                                        <div class="font-semibold">${shift.startTime} - ${shift.endTime}</div>${shift.location ? `<div class="text-[9px] text-slate-500 font-normal">(${shift.location})</div>` : ''}
-                                    </div>`;
-                            } else if (shift.type === 'off') {
-                                cellContent = `<span class="text-slate-400 italic">${shift.customText || 'Riposo'}</span>`;
-                            }
-                        }
-
-                        return `
-                            <td onclick="handleCellClick('${emp.id}',${dayIdx})" 
-                                class="py-2 px-2 text-center cursor-pointer hover:bg-indigo-50/50 ${isWeekend ? 'bg-slate-50/50' : ''}">
-                                ${cellContent}
-                            </td>`;
-                    }).join('')}
-                    ${isAdmin ? `
-                        <td class="py-3 px-3 text-center no-print">
-                            <button onclick="editEmployee('${emp.id}')" class="p-1 text-slate-400 hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteEmployee('${emp.id}')" class="p-1 text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button>
-                        </td>` : ''}
                 `;
 
-                tableBody.appendChild(tr);
+                // Shift Cells
+                let shiftCellsHTML = '';
+                for (let i = 0; i < 7; i++) {
+                    const shift = shifts[i] || { time: '-', note: '' };
+                    const isRest = shift.time.toLowerCase().includes('riposo');
+                    const isSplit = shift.time.includes('-');
+                    const isEmpty = shift.time === '-';
+
+                    let badgeStyle = "bg-slate-50 text-slate-700 border-slate-200/80";
+                    if (isRest) {
+                        badgeStyle = "bg-rose-50/90 text-rose-700 border-rose-200 font-bold";
+                    } else if (isSplit) {
+                        badgeStyle = "bg-purple-50 text-purple-900 border-purple-200 font-bold";
+                    } else if (!isEmpty) {
+                        badgeStyle = "bg-indigo-50/80 text-indigo-950 border-indigo-200/80 font-bold";
+                    }
+
+                    const adminClickAttr = isAdmin ? `onclick="openShiftEditorModal('${workerName}', ${i})"` : '';
+                    const adminCursorClass = isAdmin ? 'cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all' : '';
+
+                    shiftCellsHTML += `
+                        <td class="py-2.5 px-1.5 text-center border-r border-slate-100 last:border-r-0 align-middle">
+                            <div ${adminClickAttr} class="w-full py-2 px-1 rounded-xl border ${badgeStyle} text-[11px] leading-tight ${adminCursorClass}">
+                                <div>${shift.time}</div>
+                                ${shift.note ? `<div class="text-[9px] font-extrabold text-indigo-600 uppercase tracking-tight mt-0.5">${shift.note}</div>` : ''}
+                            </div>
+                        </td>
+                    `;
+                }
+
+                // Hours Total Cell
+                const diffHours = actualHours - meta.contractHours;
+                let diffBadge = "";
+                if (diffHours > 0) {
+                    diffBadge = `<span class="text-[9px] font-extrabold text-emerald-600 block">+${diffHours.toFixed(1)}h</span>`;
+                } else if (diffHours < 0) {
+                    diffBadge = `<span class="text-[9px] font-extrabold text-amber-600 block">${diffHours.toFixed(1)}h</span>`;
+                }
+
+                let totalCellHTML = `
+                    <td class="py-3 px-2 text-center align-middle bg-indigo-50/30 font-bold border-l border-indigo-100">
+                        <span class="text-xs text-indigo-900">${actualHours.toFixed(1)}h</span>
+                        ${diffBadge}
+                    </td>
+                `;
+
+                tr.innerHTML = workerCellHTML + shiftCellsHTML + totalCellHTML;
+                tbody.appendChild(tr);
             });
+
+            // 5. Update Admin Stats Banner
+            document.getElementById('statTotalWorkers').innerText = workerKeys.length;
+            document.getElementById('statContractHours').innerText = `${grandTotalContractHours}h`;
+            document.getElementById('statActualHours').innerText = `${grandTotalActualHours.toFixed(1)}h`;
+            
+            const diffGrand = grandTotalActualHours - grandTotalContractHours;
+            const statDiffElem = document.getElementById('statDiffHours');
+            const statDiffIconBg = document.getElementById('statDiffIconBg');
+            
+            if (diffGrand > 0) {
+                statDiffElem.innerText = `+${diffGrand.toFixed(1)}h`;
+                statDiffElem.className = "text-xl font-extrabold text-emerald-600 mt-0.5";
+                statDiffIconBg.className = "p-2.5 rounded-xl bg-emerald-50 text-emerald-600";
+            } else if (diffGrand < 0) {
+                statDiffElem.innerText = `${diffGrand.toFixed(1)}h`;
+                statDiffElem.className = "text-xl font-extrabold text-amber-600 mt-0.5";
+                statDiffIconBg.className = "p-2.5 rounded-xl bg-amber-50 text-amber-600";
+            } else {
+                statDiffElem.innerText = `0h`;
+                statDiffElem.className = "text-xl font-extrabold text-slate-900 mt-0.5";
+                statDiffIconBg.className = "p-2.5 rounded-xl bg-slate-50 text-slate-600";
+            }
+
+            document.getElementById('printTimestamp').innerText = `Aggiornato il: ${new Date().toLocaleDateString('it-IT')}`;
         }
 
-        // Authentication Handlers
-        function toggleAuthModal() {
-            if (isAdmin) {
-                isAdmin = false;
-                
-                // Hide Header & Stats Panel for Visitor View
-                document.getElementById('adminHeader').classList.add('hidden');
-                document.getElementById('adminStatsPanel').classList.add('hidden');
+        /* WORKER FILTER CONTROL */
+        function populateWorkerFilterDropdown() {
+            const select = document.getElementById('workerFilter');
+            const currentVal = select.value || 'ALL';
+            
+            select.innerHTML = '<option value="ALL">Tutti i dipendenti</option>';
+            Object.keys(appWorkers).forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.innerText = `${name} (${appWorkers[name].role})`;
+                select.appendChild(opt);
+            });
 
-                document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-lock"></i> Admin Login`;
-                document.getElementById('sidebarAuthBtn').innerHTML = `<i class="fa-solid fa-lock"></i> Admin Login`;
-                document.getElementById('adminActionGroup').classList.add('hidden');
-                document.getElementById('adminColHeader').classList.add('hidden');
-                
-                document.getElementById('topModeBadge').innerHTML = `<i class="fa-solid fa-eye"></i> <span class="hidden sm:inline">Modalità</span> Ospite`;
-                document.getElementById('sidebarModeBadge').className = "px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-700 text-slate-300 border border-slate-600";
-                document.getElementById('sidebarModeBadge').innerHTML = `<i class="fa-solid fa-eye mr-1"></i> Ospite`;
-
-                renderSchedule();
-            } else {
-                document.getElementById('authModal').classList.remove('hidden');
+            if (appWorkers[currentVal] || currentVal === 'ALL') {
+                select.value = currentVal;
             }
+        }
+
+        function handleWorkerChange() {
+            const val = document.getElementById('workerFilter').value;
+            if (document.getElementById('rememberDeviceWorker').checked) {
+                localStorage.setItem('saved_device_worker', val);
+            }
+            renderApp();
+        }
+
+        function toggleRememberWorker() {
+            const checkbox = document.getElementById('rememberDeviceWorker');
+            if (checkbox.checked) {
+                localStorage.setItem('saved_device_worker', document.getElementById('workerFilter').value);
+                showToast("Preferenza salvata sul dispositivo!");
+            } else {
+                localStorage.removeItem('saved_device_worker');
+                showToast("Preferenza rimossa!");
+            }
+        }
+
+        /* ADMIN AUTHENTICATION LOGIC */
+        function toggleAdminModal() {
+            const modal = document.getElementById('adminAuthModal');
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('adminAuthError').classList.add('hidden');
+            modal.classList.toggle('hidden');
         }
 
         function loginAdmin() {
-            const val = document.getElementById('adminPasswordInput').value;
-            if (val === adminPasscode) {
+            const inputPass = document.getElementById('adminPasswordInput').value;
+            if (inputPass === ADMIN_PASSWORD_HASH) {
                 isAdmin = true;
-                document.getElementById('authModal').classList.add('hidden');
-                document.getElementById('adminPasswordInput').value = '';
-                
-                // Reveal Header & Stats Panel for Admin View
-                document.getElementById('adminHeader').classList.remove('hidden');
-                document.getElementById('adminStatsPanel').classList.remove('hidden');
-
-                document.getElementById('modeBadge').className = "px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200";
-                document.getElementById('modeBadge').innerHTML = `<i class="fa-solid fa-shield-halved mr-1"></i> Modalità Admin`;
-                document.getElementById('authBtn').innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> Logout`;
-                document.getElementById('sidebarAuthBtn').innerHTML = `<i class="fa-solid fa-right-from-bracket"></i> Logout Admin`;
-                document.getElementById('adminActionGroup').classList.remove('hidden');
-                document.getElementById('adminColHeader').classList.remove('hidden');
-                
-                document.getElementById('topModeBadge').innerHTML = `<i class="fa-solid fa-shield-halved text-emerald-400"></i> Admin`;
-                document.getElementById('sidebarModeBadge').className = "px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-950 text-emerald-300 border border-emerald-700";
-                document.getElementById('sidebarModeBadge').innerHTML = `<i class="fa-solid fa-shield-halved mr-1"></i> Admin`;
-
-                renderSchedule();
+                toggleAdminModal();
+                updateAdminUIMode();
+                showToast("Accesso Amministratore effettuato!");
             } else {
-                alert("Password errata. Riprova.");
+                document.getElementById('adminAuthError').classList.remove('hidden');
             }
         }
 
-        // Shift Handlers
-        function handleCellClick(empId, dayIdx) {
-            if (!isAdmin) {
-                return; // Silence modal for normal visitors
+        function logoutAdmin() {
+            isAdmin = false;
+            updateAdminUIMode();
+            showToast("Logout effettuato");
+        }
+
+        function updateAdminUIMode() {
+            const adminBadgeHeader = document.getElementById('adminBadgeHeader');
+            const adminStatsPanel = document.getElementById('adminStatsPanel');
+            const adminQuickActions = document.getElementById('adminQuickActions');
+            const drawerAdminControls = document.getElementById('drawerAdminControls');
+            const drawerRoleBadge = document.getElementById('drawerRoleBadge');
+            const drawerAdminAuthBtn = document.getElementById('drawerAdminAuthBtn');
+            const drawerAdminBtnText = document.getElementById('drawerAdminBtnText');
+
+            if (isAdmin) {
+                adminBadgeHeader.classList.remove('hidden');
+                adminStatsPanel.classList.remove('hidden');
+                adminQuickActions.classList.remove('hidden');
+                drawerAdminControls.classList.remove('hidden');
+                drawerRoleBadge.innerText = "ADMIN";
+                drawerRoleBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 uppercase tracking-wider";
+                drawerAdminAuthBtn.onclick = logoutAdmin;
+                drawerAdminBtnText.innerText = "Esci da Admin";
+            } else {
+                adminBadgeHeader.classList.add('hidden');
+                adminStatsPanel.classList.add('hidden');
+                adminQuickActions.classList.add('hidden');
+                drawerAdminControls.classList.add('hidden');
+                drawerRoleBadge.innerText = "OSPITE";
+                drawerRoleBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-700 text-slate-300 uppercase tracking-wider";
+                drawerAdminAuthBtn.onclick = toggleAdminModal;
+                drawerAdminBtnText.innerText = "Accedi come Admin";
+            }
+            renderApp();
+        }
+
+        function toggleSidebarDrawer() {
+            document.getElementById('sidebarDrawer').classList.toggle('hidden');
+        }
+
+        /* MANAGE EMPLOYEES MODAL & ACTIONS */
+        function openManageWorkersModal() {
+            if (!isAdmin) return;
+            renderWorkersManageList();
+            document.getElementById('manageWorkersModal').classList.remove('hidden');
+        }
+
+        function closeManageWorkersModal() {
+            document.getElementById('manageWorkersModal').classList.add('hidden');
+            resetWorkerForm();
+        }
+
+        function renderWorkersManageList() {
+            const container = document.getElementById('workersManageList');
+            container.innerHTML = '';
+
+            Object.keys(appWorkers).forEach(name => {
+                const meta = appWorkers[name];
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/80 hover:bg-slate-100 transition-colors";
+                div.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                            ${name.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-900 text-xs">${name}</p>
+                            <p class="text-[10px] text-slate-500 font-medium">${meta.role} • ${meta.contractHours}h/settimana</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="editWorkerInit('${name}')" class="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg text-xs" title="Modifica">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button onclick="deleteWorker('${name}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg text-xs" title="Elimina">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function saveWorkerForm(e) {
+            e.preventDefault();
+            const origName = document.getElementById('editWorkerOriginalName').value;
+            const name = document.getElementById('workerFormName').value.trim();
+            const role = document.getElementById('workerFormRole').value;
+            const hours = parseFloat(document.getElementById('workerFormHours').value) || 0;
+
+            if (!name) return;
+
+            // If editing name change, update schedule references
+            if (origName && origName !== name) {
+                delete appWorkers[origName];
+                Object.keys(appSchedules).forEach(weekKey => {
+                    if (appSchedules[weekKey][origName]) {
+                        appSchedules[weekKey][name] = appSchedules[weekKey][origName];
+                        delete appSchedules[weekKey][origName];
+                    }
+                });
             }
 
-            const existing = shifts.find(s => s.employeeId === empId && s.dayIndex === dayIdx && (s.weekOffset === weekOffset || (s.weekOffset === undefined && weekOffset === 0)));
-            activeShiftEdit = {
-                employeeId: empId,
-                dayIndex: dayIdx,
-                weekOffset: weekOffset,
-                type: existing?.type || 'shift',
-                startTime: existing?.startTime || '09:00',
-                endTime: existing?.endTime || '16:00',
-                startTime2: existing?.startTime2 || '18:30',
-                endTime2: existing?.endTime2 || '21:45',
-                location: existing?.location || '',
-                customText: existing?.customText || ''
+            appWorkers[name] = {
+                role: role,
+                contractHours: hours,
+                color: role === 'Cucina' ? 'bg-sky-100 text-sky-800' : role === 'Banco' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
             };
 
-            setShiftType(activeShiftEdit.type);
-            document.getElementById('shiftStartTime').value = activeShiftEdit.startTime;
-            document.getElementById('shiftEndTime').value = activeShiftEdit.endTime;
-            document.getElementById('shiftStartTime2').value = activeShiftEdit.startTime2;
-            document.getElementById('shiftEndTime2').value = activeShiftEdit.endTime2;
-            document.getElementById('shiftLocation').value = activeShiftEdit.location;
-            document.getElementById('shiftOffText').value = activeShiftEdit.customText;
-
-            document.getElementById('shiftModal').classList.remove('hidden');
+            saveWorkersToStorage();
+            saveSchedulesToStorage();
+            resetWorkerForm();
+            renderWorkersManageList();
+            renderApp();
+            showToast("Dipendente salvato con successo!");
         }
 
-        function setShiftType(type) {
-            activeShiftEdit.type = type;
-            const b1 = document.getElementById('btnTypeShift');
-            const b2 = document.getElementById('btnTypeSplit');
-            const b3 = document.getElementById('btnTypeOff');
+        function editWorkerInit(name) {
+            const meta = appWorkers[name];
+            if (!meta) return;
+            document.getElementById('editWorkerOriginalName').value = name;
+            document.getElementById('workerFormName').value = name;
+            document.getElementById('workerFormRole').value = meta.role;
+            document.getElementById('workerFormHours').value = meta.contractHours;
 
-            [b1, b2, b3].forEach(b => b.className = "py-2 text-xs font-medium rounded-xl border bg-slate-50 text-slate-600");
+            document.getElementById('btnSubmitWorkerForm').innerHTML = '<i class="fa-solid fa-check mr-1"></i> Salva';
+            document.getElementById('btnCancelWorkerEdit').classList.remove('hidden');
+        }
 
-            if (type === 'shift') {
-                b1.className = "py-2 text-xs font-medium rounded-xl border bg-indigo-50 border-indigo-500 text-indigo-700 font-bold";
-                document.getElementById('shiftTimeSection').classList.remove('hidden');
-                document.getElementById('splitShiftFields').classList.add('hidden');
-                document.getElementById('shiftOffSection').classList.add('hidden');
-            } else if (type === 'split') {
-                b2.className = "py-2 text-xs font-medium rounded-xl border bg-purple-50 border-purple-500 text-purple-700 font-bold";
-                document.getElementById('shiftTimeSection').classList.remove('hidden');
-                document.getElementById('splitShiftFields').classList.remove('hidden');
-                document.getElementById('shiftOffSection').classList.add('hidden');
-            } else if (type === 'off') {
-                b3.className = "py-2 text-xs font-medium rounded-xl border bg-slate-200 border-slate-400 text-slate-800 font-bold";
-                document.getElementById('shiftTimeSection').classList.add('hidden');
-                document.getElementById('shiftOffSection').classList.remove('hidden');
+        function resetWorkerForm() {
+            document.getElementById('editWorkerOriginalName').value = '';
+            document.getElementById('workerFormName').value = '';
+            document.getElementById('workerFormRole').value = 'Cucina';
+            document.getElementById('workerFormHours').value = '';
+            document.getElementById('btnSubmitWorkerForm').innerHTML = '<i class="fa-solid fa-plus mr-1"></i> Aggiungi';
+            document.getElementById('btnCancelWorkerEdit').classList.add('hidden');
+        }
+
+        function deleteWorker(name) {
+            if (confirm(`Sei sicuro di voler eliminare ${name}? Tutti i suoi turni verranno rimossi.`)) {
+                delete appWorkers[name];
+                Object.keys(appSchedules).forEach(weekKey => {
+                    if (appSchedules[weekKey][name]) {
+                        delete appSchedules[weekKey][name];
+                    }
+                });
+                saveWorkersToStorage();
+                saveSchedulesToStorage();
+                renderWorkersManageList();
+                renderApp();
+                showToast("Dipendente eliminato");
             }
         }
 
-        function closeShiftModal() {
-            document.getElementById('shiftModal').classList.add('hidden');
+        /* SHIFT CELL EDITOR */
+        function openShiftEditorModal(workerName, dayIndex) {
+            if (!isAdmin) return;
+            const weekKey = formatDateKey(currentWeekStartDate);
+            const weekDays = getWeekDaysArray(currentWeekStartDate);
+            const dayObj = weekDays[dayIndex];
+            const dayName = dayObj.toLocaleDateString('it-IT', { weekday: 'long', day: '2-digit', month: '2-digit' });
+
+            document.getElementById('modalShiftWorker').value = workerName;
+            document.getElementById('modalShiftDayIndex').value = dayIndex;
+
+            document.getElementById('shiftModalTitle').innerText = `Modifica Turno`;
+            document.getElementById('shiftModalSubtitle').innerText = `${workerName} • ${dayName}`;
+
+            const currentShift = (appSchedules[weekKey] && appSchedules[weekKey][workerName]) ? appSchedules[weekKey][workerName][dayIndex] : { time: '-', note: '' };
+
+            document.getElementById('modalShiftTime').value = currentShift.time === '-' ? '' : currentShift.time;
+            document.getElementById('modalShiftNote').value = currentShift.note || '';
+
+            document.getElementById('shiftEditorModal').classList.remove('hidden');
         }
 
-        function saveShift() {
-            if (!activeShiftEdit) return;
-
-            shifts = shifts.filter(s => !(s.employeeId === activeShiftEdit.employeeId && s.dayIndex === activeShiftEdit.dayIndex && (s.weekOffset === activeShiftEdit.weekOffset || (s.weekOffset === undefined && activeShiftEdit.weekOffset === 0))));
-
-            const newShift = {
-                id: 's_' + Date.now(),
-                employeeId: activeShiftEdit.employeeId,
-                dayIndex: activeShiftEdit.dayIndex,
-                weekOffset: activeShiftEdit.weekOffset,
-                type: activeShiftEdit.type,
-                startTime: document.getElementById('shiftStartTime').value,
-                endTime: document.getElementById('shiftEndTime').value,
-                startTime2: document.getElementById('shiftStartTime2').value,
-                endTime2: document.getElementById('shiftEndTime2').value,
-                location: document.getElementById('shiftLocation').value,
-                customText: document.getElementById('shiftOffText').value
-            };
-
-            shifts.push(newShift);
-            closeShiftModal();
-            saveData();
+        function closeShiftEditorModal() {
+            document.getElementById('shiftEditorModal').classList.add('hidden');
         }
 
-        function removeShift() {
-            if (!activeShiftEdit) return;
-            shifts = shifts.filter(s => !(s.employeeId === activeShiftEdit.employeeId && s.dayIndex === activeShiftEdit.dayIndex && (s.weekOffset === activeShiftEdit.weekOffset || (s.weekOffset === undefined && activeShiftEdit.weekOffset === 0))));
-            closeShiftModal();
-            saveData();
+        function setShiftPreset(time, note) {
+            document.getElementById('modalShiftTime').value = time;
+            document.getElementById('modalShiftNote').value = note;
         }
 
-        // Employee Management
-        function openEmployeeModal() {
-            activeEmployeeEditId = null;
-            document.getElementById('empModalTitle').innerText = "Nuovo Dipendente";
-            document.getElementById('empNameInput').value = '';
-            document.getElementById('empRoleInput').value = 'cucina';
-            document.getElementById('empHoursInput').value = '40';
-            document.getElementById('employeeModal').classList.remove('hidden');
+        function saveShiftCell(e) {
+            e.preventDefault();
+            const workerName = document.getElementById('modalShiftWorker').value;
+            const dayIndex = parseInt(document.getElementById('modalShiftDayIndex').value);
+            const time = document.getElementById('modalShiftTime').value.trim() || '-';
+            const note = document.getElementById('modalShiftNote').value.trim();
+
+            const weekKey = formatDateKey(currentWeekStartDate);
+            if (!appSchedules[weekKey]) appSchedules[weekKey] = {};
+            if (!appSchedules[weekKey][workerName]) appSchedules[weekKey][workerName] = Array(7).fill().map(() => ({ time: '-', note: '' }));
+
+            appSchedules[weekKey][workerName][dayIndex] = { time, note };
+
+            saveSchedulesToStorage();
+            closeShiftEditorModal();
+            renderApp();
+            showToast("Turno aggiornato!");
         }
 
-        function closeEmployeeModal() {
-            document.getElementById('employeeModal').classList.add('hidden');
+        /* EXPORT & SHARE TOOLS */
+        function printSchedule() {
+            window.print();
         }
 
-        function saveEmployee() {
-            const name = document.getElementById('empNameInput').value.trim();
-            const role = document.getElementById('empRoleInput').value;
-            const hours = parseFloat(document.getElementById('empHoursInput').value) || 0;
+        function exportToCSV() {
+            const weekKey = formatDateKey(currentWeekStartDate);
+            const weekDays = getWeekDaysArray(currentWeekStartDate);
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += `Dipendente,Mansione,Ore Contratto,` + weekDays.map(d => d.toLocaleDateString('it-IT', { weekday: 'short', day: '2-digit', month: '2-digit' })).join(',') + `,Ore Totali\n`;
 
-            if (!name) {
-                alert("Inserire il nome del dipendente.");
-                return;
-            }
-
-            if (activeEmployeeEditId) {
-                const emp = employees.find(e => e.id === activeEmployeeEditId);
-                if (emp) {
-                    emp.name = name;
-                    emp.role = role;
-                    emp.contractHours = hours;
+            Object.keys(appWorkers).forEach(wName => {
+                const meta = appWorkers[wName];
+                const shifts = appSchedules[weekKey] ? appSchedules[weekKey][wName] || [] : [];
+                const totHours = calculateWorkerWeeklyHours(wName, weekKey);
+                
+                const shiftCols = [];
+                for(let i=0; i<7; i++) {
+                    const s = shifts[i] || { time: '-' };
+                    shiftCols.push(`"${s.time}"`);
                 }
-            } else {
-                employees.push({
-                    id: 'e_' + Date.now(),
-                    name: name,
-                    role: role,
-                    contractHours: hours
-                });
-            }
 
-            closeEmployeeModal();
-            saveData();
-        }
-
-        function editEmployee(empId) {
-            const emp = employees.find(e => e.id === empId);
-            if (!emp) return;
-            activeEmployeeEditId = empId;
-            document.getElementById('empModalTitle').innerText = "Modifica Dipendente";
-            document.getElementById('empNameInput').value = emp.name;
-            document.getElementById('empRoleInput').value = emp.role;
-            document.getElementById('empHoursInput').value = emp.contractHours;
-            document.getElementById('employeeModal').classList.remove('hidden');
-        }
-
-        function deleteEmployee(empId) {
-            if (confirm("Sei sicuro di voler eliminare questo dipendente e tutti i suoi turni?")) {
-                employees = employees.filter(e => e.id !== empId);
-                shifts = shifts.filter(s => s.employeeId !== empId);
-                saveData();
-            }
-        }
-
-        function shareLink() {
-            navigator.clipboard.writeText(window.location.href);
-            alert("Link della pagina copiato negli appunti!");
-        }
-
-        function exportCSV() {
-            let csv = 'Dipendente,Mansione,Ore Contratto,Lunedì,Martedì,Mercoledì,Giovedì,Venerdì,Sabato,Domenica\n';
-            employees.forEach(e => {
-                let row = [e.name, e.role, e.contractHours];
-                DAYS.forEach((_, dIdx) => {
-                    const s = shifts.find(sh => sh.employeeId === e.id && sh.dayIndex === dIdx && (sh.weekOffset === weekOffset || (sh.weekOffset === undefined && weekOffset === 0)));
-                    if (s) {
-                        if (s.type === 'shift') row.push(`${s.startTime}-${s.endTime}`);
-                        else if (s.type === 'split') row.push(`${s.startTime}-${s.endTime}/${s.startTime2}-${s.endTime2}`);
-                        else row.push(s.customText || 'Riposo');
-                    } else row.push('Riposo');
-                });
-                csv += row.join(',') + '\n';
+                csvContent += `"${wName}","${meta.role}",${meta.contractHours},` + shiftCols.join(',') + `,${totHours.toFixed(1)}\n`;
             });
 
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('href', url);
-            a.setAttribute('download', `orari_turni_settimana_${weekOffset}.csv`);
-            a.click();
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Turni_${weekKey}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("File CSV esportato!");
+        }
+
+        function shareSchedule() {
+            const dummy = document.createElement('input');
+            document.body.appendChild(dummy);
+            dummy.value = window.location.href;
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+            showToast("Link della pagina copiato negli appunti!");
+        }
+
+        /* TOAST MESSAGES */
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastText').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
         }
     </script>
 </body>
